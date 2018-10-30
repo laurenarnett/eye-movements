@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 
 \usepackage[pdftex]{graphicx}
 \usepackage{url}
@@ -9,20 +9,44 @@
 %Title
 \begin{center}
     \LARGE {A Predictive Model for Eye-Movements}
-    \\\large Lauren Arnett \& Chengzhi Mao
+    \\\large Lauren Arnett (lba2138) \& Chengzhi Mao (cm3797)
     
 \end{center}
+\section{Project Statement} 
+\vspace{-0.25cm}
+It is estimated that human vision demands anywhere from 30 to 50 \% of brain
+processing. As such, optimizing images for processing by the human brain allows
+for better information retrieval and retention across the image. Applications
+for study of how humans' eyes move across images span from advertising to art.
+Being able to predict where humans are most likely to look provides a guideline
+as to where to place the most important information, what humans are attracted
+to in viewing art, or how an image should be cropped to feature the subject.
+Using an existing dataset of eye movements, we are building a predictive model
+to generate the most likely fixation locations on a new image.
+\vspace{-0.5cm}
+\section{Methods} 
+\vspace{-0.25cm}
+We will be using one of two potential datasets of fixation locations. The first
+was developed at Osnabr{\"u}ck University. This dataset aggregates 949 images
+from multiple studies conducted with different batches of participants over
+image categories of natural and urban scenes, web sites, fractal, pink-noise,
+and ambiguous artistic figures.  The second was developed specifically for
+a similar eye-movement-prediction study by researchers at MIT with data for 15
+participants over 1003 natural images from Flickr and LabelMe. While the first
+dataset includes a wider variety of images, the second dataset provides data
+for many more images per viewer.
 
-\section{Project Statement}
-
-\section{Methods}
-
+\vspace{-0.5cm}
 \section{Evaluation}
+\vspace{-0.25cm}
 
-
-%Bibliography - TODO: need to make cite the dataset
+%Bibliography - TODO: need to make citation for MIT dataset
 \begin{thebibliography}{99}
 
+    \bibitem{wilming2017} Wilming N., Onat S., Ossandón J., Acik A., Kietzmann
+    T.C., Kaspar K., Gameiro R.R., Vormberg A., and König P., (2017)
+    ``An extensive dataset of eye movements during viewing of complex
+    images.'', Nature Scientific Data 4: 160126.  \verb|https://doi.org/10.1038/sdata.2016.126|
 %example bibitem
 %\bibitem{gonzalez2012} Jonay I. Gonz\'{a}lez Hern\'{a}ndez, 
 %Pilar Ruiz-Lapuente,    
