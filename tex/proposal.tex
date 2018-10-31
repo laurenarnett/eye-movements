@@ -55,7 +55,10 @@ reserving a subset of images for testing. Training on image data for all viewers
 an image, we will predict where that population is most likely to have fixation
 locations on a new image. In order to validate how close we were to the actual
 fixation location, we will be taking the distance between the means of the
-actual and predicted coordinates.
+actual and predicted coordinates. In addition, the fixiation point for different 
+people looking at the same image is divisified, we would propose a variance groundtruth
+as the indication of the uncertainty, which could further evaluate the uncertainty estimation
+of our Bayesian Learning model.
 
 
 
