@@ -45,6 +45,14 @@ of Occam's razor. Should we instead decide to use deep learning methods, we
 will be exploring adversarial training methods to try to generalize our model.
 % add some more specifics here
 
+Specifically, we would like to combine Bayesian inference with deep learning techniques,
+since 1. the number of of training samples are limited and the eye movement labels are noisy, we need bayesian method to
+inference under uncertainty. 2. the input image is high dimensional which traditional Bayesian methods are hard to handle,
+deep learning methods are easy to process such data.
+
+Adversarial training can be used to match the eye fixation distribution of different people, removing
+individual specific information which make the model be able to generalize to unknown group of people.
+
 Lauren will handle preprocessing of the dataset, Chengzhi will set up a testing
 framework, and we will be working on building the model together. 
 \vspace{-0.5cm}
