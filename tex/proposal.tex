@@ -22,12 +22,14 @@ Being able to predict where humans are most likely to look provides a guideline
 as to where to place the most important information, what humans are attracted
 to in viewing art, or how an image should be cropped to feature the subject.
 Using an existing dataset of eye movements, we are building a predictive model
-to generate the most likely fixation locations on a new image.
+to generate the most likely fixation locations on a new image. 
 \vspace{-0.5cm}
+
 \section{Methods} 
+
 \vspace{-0.25cm}
-We will be using one of two potential datasets of fixation locations. The first
-was developed at Osnabr{\"u}ck University. This dataset aggregates 949 images
+We will be using one of two potential datasets of fixation locations. The
+first, developed at Osnabr{\"u}ck University, aggregates 949 images
 from multiple studies conducted with different batches of participants over
 image categories of natural and urban scenes, web sites, fractal, pink-noise,
 and ambiguous artistic figures.  The second was developed specifically for
@@ -36,12 +38,37 @@ participants over 1003 natural images from Flickr and LabelMe. While the first
 dataset includes a wider variety of images, the second dataset provides data
 for many more images per viewer.
 
+Regardless of which dataset we are using, we will have a relatively small
+number of viewers per image. Given that we have this pre-defined population, we
+are looking at using Bayesian methods to keep our model simple, in the spirit
+of Occam's razor. Should we instead decide to use deep learning methods, we
+will be exploring adversarial training methods to try to generalize our model.
+% add some more specifics here
+
+Lauren will handle preprocessing of the dataset, Chengzhi will set up a testing
+framework, and we will be working on building the model together. 
 \vspace{-0.5cm}
+
 \section{Evaluation}
+We will use the standard 80\% / 20\% train / test split on our dataset,
+reserving a subset of images for testing. Training on image data for all viewers of
+an image, we will predict where that population is most likely to have fixation
+locations on a new image. In order to validate how close we were to the actual
+fixation location, we will be taking the distance between the means of the
+actual and predicted coordinates.
+
+
+
 \vspace{-0.25cm}
+
 
 %Bibliography - TODO: need to make citation for MIT dataset
 \begin{thebibliography}{99}
+    \bibitem{Judd_2009}
+      Judd, T., Ehinger, K., Durand, F. and Torralba, A.,
+      (2009)
+      ``Learning to Predict Where Humans Look'',
+      IEEE International Conference on Computer Vision (ICCV),
 
     \bibitem{wilming2017} Wilming N., Onat S., Ossandón J., Acik A., Kietzmann
     T.C., Kaspar K., Gameiro R.R., Vormberg A., and König P., (2017)
