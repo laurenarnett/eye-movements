@@ -32,9 +32,9 @@ We will be using one of two potential datasets of fixation locations. The
 first, developed at Osnabr{\"u}ck University, aggregates 949 images
 from multiple studies conducted with different batches of participants over
 image categories of natural and urban scenes, web sites, fractal, pink-noise,
-and ambiguous artistic figures.  The second was developed specifically for
+and ambiguous artistic figures [1].  The second was developed specifically for
 a similar eye-movement-prediction study by researchers at MIT with data for 15
-participants over 1003 natural images from Flickr and LabelMe. While the first
+participants over 1003 natural images from Flickr and LabelMe [2]. While the first
 dataset includes a wider variety of images, the second dataset provides data
 for many more images per viewer.
 
@@ -43,18 +43,16 @@ number of viewers per image. Given that we have this pre-defined population, we
 are looking at using Bayesian methods to keep our model simple, in the spirit
 of Occam's razor. Should we decide to also use deep learning methods, we
 will be exploring adversarial training methods to try to generalize our model.
-% add some more specifics here
 
 Specifically, we will combine Bayesian inference with deep learning techniques,
 since the number of of training samples is limited and the eye movement labels
 are noisy. Thus, we need Bayesian methods to perform inference under
 uncertainty. Additionally, the input image is high-dimensional---while
 traditional Bayesian methods have a difficult time handling such data, deep
-learning methods easily process it.
-
-Adversarial training can be used to match the eye fixation distribution of
-different people, removing individual-specific information and making the model
-able to generalize to an unknown group of people.
+learning methods easily process it.  Adversarial training can be used to match
+the eye fixation distribution of different people, removing individual-specific
+information and making the model able to generalize to an unknown group of
+people.
 
 Lauren will handle preprocessing of the dataset, Chengzhi will set up a testing
 framework, and we will be working on building the model together. 
@@ -79,16 +77,16 @@ further evaluate the uncertainty estimation of our Bayesian Learning model.
 
 %Bibliography - TODO: need to make citation for MIT dataset
 \begin{thebibliography}{99}
+    \bibitem{wilming2017} Wilming N., Onat S., Ossandón J., Acik A., Kietzmann
+    T.C., Kaspar K., Gameiro R.R., Vormberg A., and König P., (2017)
+    ``An extensive dataset of eye movements during viewing of complex
+    images.'', Nature Scientific Data 4: 160126.  \verb|https://doi.org/10.1038/sdata.2016.126|
     \bibitem{Judd_2009}
       Judd, T., Ehinger, K., Durand, F. and Torralba, A.,
       (2009)
       ``Learning to Predict Where Humans Look'',
       IEEE International Conference on Computer Vision (ICCV),
 
-    \bibitem{wilming2017} Wilming N., Onat S., Ossandón J., Acik A., Kietzmann
-    T.C., Kaspar K., Gameiro R.R., Vormberg A., and König P., (2017)
-    ``An extensive dataset of eye movements during viewing of complex
-    images.'', Nature Scientific Data 4: 160126.  \verb|https://doi.org/10.1038/sdata.2016.126|
 %example bibitem
 %\bibitem{gonzalez2012} Jonay I. Gonz\'{a}lez Hern\'{a}ndez, 
 %Pilar Ruiz-Lapuente,    
