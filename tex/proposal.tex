@@ -38,35 +38,39 @@ participants over 1003 natural images from Flickr and LabelMe. While the first
 dataset includes a wider variety of images, the second dataset provides data
 for many more images per viewer.
 
-Regardless of which dataset we are using, we will have a relatively small
+Regardless of which dataset we decide to use, we will have a relatively small
 number of viewers per image. Given that we have this pre-defined population, we
 are looking at using Bayesian methods to keep our model simple, in the spirit
-of Occam's razor. Should we instead decide to use deep learning methods, we
+of Occam's razor. Should we decide to also use deep learning methods, we
 will be exploring adversarial training methods to try to generalize our model.
 % add some more specifics here
 
-Specifically, we will to combine Bayesian inference with deep learning techniques,
-since 1. the number of of training samples are limited and the eye movement labels are noisy, we need bayesian method to
-inference under uncertainty. 2. the input image is high dimensional which traditional Bayesian methods are hard to handle,
-deep learning methods are easy to process such data.
+Specifically, we will combine Bayesian inference with deep learning techniques,
+since the number of of training samples is limited and the eye movement labels
+are noisy. Thus, we need Bayesian methods to perform inference under
+uncertainty. Additionally, the input image is high-dimensional---while
+traditional Bayesian methods have a difficult time handling such data, deep
+learning methods easily process it.
 
-Adversarial training can be used to match the eye fixation distribution of different people, removing
-individual specific information which make the model be able to generalize to unknown group of people.
+Adversarial training can be used to match the eye fixation distribution of
+different people, removing individual-specific information and making the model
+able to generalize to an unknown group of people.
 
 Lauren will handle preprocessing of the dataset, Chengzhi will set up a testing
 framework, and we will be working on building the model together. 
 \vspace{-0.5cm}
 
 \section{Evaluation}
+
 We will use the standard 80\% / 20\% train / test split on our dataset,
-reserving a subset of images for testing. Training on image data for all viewers of
-an image, we will predict where that population is most likely to have fixation
-locations on a new image. In order to validate how close we were to the actual
-fixation location, we will be taking the distance between the means of the
-actual and predicted coordinates. In addition, the fixiation point for different 
-people looking at the same image is divisified, we would propose a variance groundtruth
-as the indication of the uncertainty, which could further evaluate the uncertainty estimation
-of our Bayesian Learning model.
+reserving a subset of images for testing. Training on image data for all
+viewers of an image, we will predict where that population is most likely to
+have fixation locations on a new image. In order to validate how close we were
+to the actual fixation location, we will be taking the distance between the
+means of the actual and predicted coordinates. In addition, as the fixiation
+point for different people looking at the same image is diversified, we would
+propose a ground truth variance as the indication of uncertainty, which could
+further evaluate the uncertainty estimation of our Bayesian Learning model.
 
 
 
