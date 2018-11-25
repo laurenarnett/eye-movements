@@ -30,7 +30,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -50,7 +50,7 @@ parser.add_argument('--dist-url', default='tcp://224.66.41.62:23456', type=str,
                     help='url used to set up distributed training')
 parser.add_argument('--dist-backend', default='gloo', type=str,
                     help='distributed backend')
-parser.add_argument('--print_freq', type=int, default=1000, metavar='N',
+parser.add_argument('--print_freq', type=int, default=10000, metavar='N',
                         help='print')
 best_prec1 = 0
 
@@ -152,7 +152,7 @@ def train(train_loader, model_list, optimizer, epoch):
 
         target = target.cuda(async=True)
         target_var = torch.autograd.Variable(target)
-        input_var = torch.autograd.Variable(input.cuda())
+        input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
         fea = vgg_features(input_var)
         attention_mask = mask_model(fea.detach())
