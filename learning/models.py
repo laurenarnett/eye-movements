@@ -93,3 +93,37 @@ class Reconst(nn.Module):
         return x
 
 
+class FixPred(nn.Module):
+    def __init__(self):
+        super(FixPred, self).__init__()
+
+        l=[512, 256, 128, 64, 32]
+
+        self.deconv5 = nn.ConvTranspose2d(l[4], l[3], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv4 = nn.ConvTranspose2d(l[3], l[2], kernel_size=5, stride=2, padding=2, output_padding=1)
+
+        self.deconv3 = nn.ConvTranspose2d(l[2], l[1], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv2 = nn.ConvTranspose2d(l[1], l[0], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv11 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv12 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+
+        self.pr2 = nn.PReLU()
+        self.pr3 = nn.PReLU()
+        self.pr4 = nn.PReLU()
+        self.pr5 = nn.PReLU()
+
+    def forward(self, x):
+
+        x = self.pr2(self.deconv5(x))
+        x = self.pr3(self.deconv4(x))
+
+        x = self.pr4(self.deconv3(x))
+        x = self.pr5(self.deconv2(x))
+        mean = self.deconv11(x)
+        var = self.deconv12(x)
+
+        return mean, var
+
+
+
+
