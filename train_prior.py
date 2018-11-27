@@ -198,7 +198,7 @@ def train(train_loader, model_list, optimizer, epoch):
             ))
 
 
-def validate(val_loader, model_list):
+def validate(val_loader, model_list, visualize):
     RMSE_losses = AverageMeter()
     class_losses = AverageMeter()
     batch_time = AverageMeter()
@@ -223,6 +223,11 @@ def validate(val_loader, model_list):
         attention_mask = mask_model(fea.detach())
 
         masked_image = attention_mask * input_var  # apply the attention mask on the origin picture
+        if (visualize == True):
+            # make a directory for images in this epoch
+            # save each image as /epochnum/imagenum.png
+
+
 
         reconstruct_image = reconstruct_model(masked_image)
 
