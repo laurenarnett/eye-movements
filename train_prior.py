@@ -38,7 +38,7 @@ parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='', type=str, metavar='PATH',
+parser.add_argument('--resume', default='model_best.pth.tar', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -100,6 +100,16 @@ def main():
     mask = Mask().cuda()
 
     reconstruct_model = Reconst().cuda()
+    mse_best = 99999
+
+    if args.resume:
+        dict_saved = torch.load(args.resume)
+        mask.load_state_dict(dict_saved['state_dict'])
+        reconstruct_model.load_state_dict(dict_saved['reconstruct'])
+
+        args.start_epoch = dict_saved['epoch']
+        mse_best = dict_saved['best_prec1']
+
 
     optimizer = torch.optim.SGD(list(mask.parameters()) + list(reconstruct_model.parameters()), args.lr,
                                     momentum=args.momentum,
@@ -108,7 +118,7 @@ def main():
     model_list = [vgg, vgg_features, mask, reconstruct_model]
     # criterion = #MSE
 
-    mse_best = 99999
+
 
     for epoch in range(args.start_epoch, args.epochs):
             adjust_learning_rate(args, optimizer, epoch)

@@ -30,4 +30,3 @@ class EyeDataset(data.Dataset):
 
 
 
-        
