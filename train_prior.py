@@ -28,7 +28,7 @@ parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -119,26 +119,25 @@ def main():
     # criterion = #MSE
 
 
-
     for epoch in range(args.start_epoch, args.epochs):
-            adjust_learning_rate(args, optimizer, epoch)
+        adjust_learning_rate(args, optimizer, epoch)
 
-            # train for one epoch
-            train(train_loader, model_list, optimizer, epoch)
+        # train for one epoch
+        train(train_loader, model_list, optimizer, epoch)
 
-            # evaluate on validation set
-            mse = validate(val_loader, model_list)
+        # evaluate on validation set
+        mse = validate(val_loader, model_list)
 
-            # remember best mse error and save checkpoint
-            is_best = mse < mse_best
-            mse_best = min(mse, mse_best)
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': mask.state_dict(),
-                'reconstruct': reconstruct_model.state_dict(),
-                'best_prec1': mse_best,
-                'optimizer' : optimizer.state_dict(),
-            }, is_best)
+        # remember best mse error and save checkpoint
+        is_best = mse < mse_best
+        mse_best = min(mse, mse_best)
+        save_checkpoint({
+            'epoch': epoch + 1,
+            'state_dict': mask.state_dict(),
+            'reconstruct': reconstruct_model.state_dict(),
+            'best_prec1': mse_best,
+            'optimizer' : optimizer.state_dict(),
+        }, is_best)
 
 
 def train(train_loader, model_list, optimizer, epoch):

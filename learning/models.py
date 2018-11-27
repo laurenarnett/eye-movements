@@ -97,7 +97,8 @@ class FixPred(nn.Module):
     def __init__(self):
         super(FixPred, self).__init__()
 
-        l=[512, 256, 128, 64, 32]
+        # l=[512, 256, 128, 64, 32]
+        l = [32, 64, 128, 256, 512]
 
         self.deconv5 = nn.ConvTranspose2d(l[4], l[3], kernel_size=5, stride=2, padding=2, output_padding=1)
         self.deconv4 = nn.ConvTranspose2d(l[3], l[2], kernel_size=5, stride=2, padding=2, output_padding=1)
@@ -122,7 +123,7 @@ class FixPred(nn.Module):
         mean = self.deconv11(x)
         var = self.deconv12(x)
 
-        return mean, var
+        return mean, torch.exp(var)
 
 
 

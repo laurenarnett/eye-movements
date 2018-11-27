@@ -32,9 +32,11 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
-parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
+parser.add_argument('--lambda_', default=0.5, type=float, metavar='M',
+                    help='lambda for uncertainty loss')
+parser.add_argument('--momentum', default=0.5, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
@@ -66,12 +68,12 @@ def main():
                                      std=[0.229, 0.224, 0.225])
 
     train_dataset = EyeDataset(
-        path = '/home/mcz/eye_move_data/train',
+        path=os.path.join(args.data, 'train'),
         normalization=normalize
     )
 
     test_dataset = EyeDataset(
-        path='/home/mcz/eye_move_data/test',
+        path=os.path.join(args.data, 'test'),
         normalization=normalize
     )
 
@@ -148,7 +150,7 @@ def train(train_loader, model_list, optimizer, epoch):
         f_mean, f_var = fix_pred(fea.detach())
 
         loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
-                         + args.lambda_ * torch.log(f_var))
+                         + args.lambda_ * torch.log(f_var + 1e-8))
         loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
 
         mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
@@ -199,6 +201,7 @@ def validate(val_loader, model_list):
         RMSE_losses.update(mse_loss.data[0], input.size(0))
         class_losses.update(loss.data[0], input.size(0))
 
+    print('Test')
     print(' * Prec@1 RMSE {RMSE_losses.avg:.3f}\t '
           '* Prec@1 normalized loss {class_losses.avg:.3f}'.format(RMSE_losses=RMSE_losses, class_losses=class_losses))
 
