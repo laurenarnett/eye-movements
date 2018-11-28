@@ -22,17 +22,18 @@ class Mask(nn.Module):
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
 
-        k = 7
-        x_resize = x.resize(x.size()[0], k*k)
+        size_x = x.size()
+
+        x_resize = x.resize(size_x[0], size_x[2]*size_x[3])
         topk, indices = torch.topk(x_resize, 5)
 
         # print('indices shape', indices.size())   ## batch  topk_num
 
-        mask_ind = torch.zeros(x.size()[0], 1, k, k).cuda()
+        mask_ind = torch.zeros(x.size()[0], 1, size_x[2], size_x[3]).cuda()
         for b in range(x.size()[0]):
             for i in range(indices.shape[1]):
-                row_i = indices[b, i] // k
-                column_i = indices[b, i] % k
+                row_i = indices[b, i] // size_x[3]
+                column_i = indices[b, i] % size_x[3]
                 mask_ind[b, 0, row_i, column_i] = 1
 
         x = x * mask_ind
@@ -120,6 +121,44 @@ class FixPred(nn.Module):
 
         x = self.pr4(self.deconv3(x))
         x = self.pr5(self.deconv2(x))
+        mean = self.deconv11(x)
+        var = self.deconv12(x)
+
+        return mean, torch.exp(var)
+
+
+class BayesPred(nn.Module):
+    def __init__(self):
+        super(BayesPred, self).__init__()
+
+        l = [32, 64, 128, 256, 512]
+
+        self.deconv5 = nn.ConvTranspose2d(l[4], l[3], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv4 = nn.ConvTranspose2d(l[3], l[2], kernel_size=5, stride=2, padding=2, output_padding=1)
+
+        self.deconv3 = nn.ConvTranspose2d(l[2], l[1], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv2 = nn.ConvTranspose2d(l[1] + 1, l[0], kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv1 = nn.ConvTranspose2d(l[0], l[0], kernel_size=5, stride=1, padding=2, output_padding=0)
+        self.deconv11 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+        self.deconv12 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+
+        self.pr2 = nn.PReLU()
+        self.pr3 = nn.PReLU()
+        self.pr4 = nn.PReLU()
+        self.pr5 = nn.PReLU()
+        self.pr6 = nn.PReLU()
+
+    def forward(self, x, mask_prior):
+        x = self.pr2(self.deconv5(x))
+        x = self.pr3(self.deconv4(x))
+
+        x = self.pr4(self.deconv3(x))
+
+        mask_prior = mask_prior[:, :, ::4, ::4]
+        x = torch.cat((mask_prior, x), dim=1)
+
+        x = self.pr5(self.deconv2(x))
+        x = self.pr6(self.deconv1(x))
         mean = self.deconv11(x)
         var = self.deconv12(x)
 

@@ -11,10 +11,10 @@ def adjust_learning_rate(args, optimizer, epoch):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    torch.save(state, filename)
+def save_checkpoint(state, is_best, filetype = 'prior', filename='checkpoint.pth.tar'):
+    torch.save(state, filetype + filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, filetype + 'model_best.pth.tar')
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

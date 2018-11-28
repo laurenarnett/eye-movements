@@ -110,7 +110,6 @@ def main():
         args.start_epoch = dict_saved['epoch']
         mse_best = dict_saved['best_prec1']
 
-
     optimizer = torch.optim.SGD(list(mask.parameters()) + list(reconstruct_model.parameters()), args.lr,
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
@@ -159,7 +158,7 @@ def train(train_loader, model_list, optimizer, epoch):
 
     for i, (input, target) in enumerate(train_loader):
 
-        target = target.cuda(async=True)
+        target = target.cuda()
         target_var = torch.autograd.Variable(target)
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
@@ -215,18 +214,13 @@ def validate(val_loader, model_list, visualize):
     for i, (input, target) in enumerate(val_loader):
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
-        target = target.cuda(async=True)
+        target = target.cuda()
         target_var = torch.autograd.Variable(target, volatile=True)
 
         fea = vgg_features(input_var)
         attention_mask = mask_model(fea.detach())
 
         masked_image = attention_mask * input_var  # apply the attention mask on the origin picture
-        if (visualize == True):
-            # make a directory for images in this epoch
-            # save each image as /epochnum/imagenum.png
-
-
 
         reconstruct_image = reconstruct_model(masked_image)
 

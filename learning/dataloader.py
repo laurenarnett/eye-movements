@@ -15,6 +15,8 @@ class EyeDataset(data.Dataset):
                 self.file_list.append(each)
 
         self.kernel = gaussian2D(sigma=2)
+        self.mean = normalization[0]
+        self.std = normalization[1]
 
     def __len__(self):
         return len(self.file_list)
@@ -47,12 +49,12 @@ class EyeDataset(data.Dataset):
             image = image / np.max(image)
             label = label / np.max(label)
 
+            for i in range(3):
+                image[i] = (image[i] - self.mean[i]) / self.std[i] # normalize
+
             # image = image - np.mean(image)
             # label = label - np.mean(label)
-            #TODO: normalize
-
             return image, label
-
         except:
             print('error')
             return np.zeros((3,192, 256), dtype='float32'), np.zeros((192, 256), dtype='float32')
