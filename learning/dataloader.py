@@ -5,6 +5,7 @@ from PIL import Image
 from scipy import signal
 from utils import gaussian2D
 
+
 class EyeDataset(data.Dataset):
     def __init__(self, path, normalization):
         self.path = path
@@ -36,6 +37,8 @@ class EyeDataset(data.Dataset):
             label = Image.open(label_path)
             label.load()
             label = np.asarray(label, dtype='float32')
+            label = label > 0
+            label = np.asarray(label, dtype='int64')
 
             image = np.transpose(image, (2, 0, 1))
 
@@ -47,7 +50,6 @@ class EyeDataset(data.Dataset):
             label = label[::5, ::5]
 
             image = image / np.max(image)
-            label = label / np.max(label)
 
             for i in range(3):
                 image[i] = (image[i] - self.mean[i]) / self.std[i] # normalize
@@ -55,9 +57,10 @@ class EyeDataset(data.Dataset):
             # image = image - np.mean(image)
             # label = label - np.mean(label)
             return image, label
+
         except:
             print('error')
-            return np.zeros((3,192, 256), dtype='float32'), np.zeros((192, 256), dtype='float32')
+            return np.zeros((3,192, 256), dtype='float32'), np.zeros((192, 256), dtype='int64')
 
 
 

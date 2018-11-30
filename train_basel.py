@@ -30,15 +30,15 @@ parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.00001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--lambda_', default=0.5, type=float, metavar='M',
                     help='lambda for uncertainty loss')
 parser.add_argument('--momentum', default=0.5, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
+parser.add_argument('--weight-decay', '--wd', default=1e-6, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
@@ -56,6 +56,8 @@ parser.add_argument('--dist-backend', default='gloo', type=str,
                     help='distributed backend')
 parser.add_argument('--print_freq', type=int, default=10000, metavar='N',
                         help='print')
+parser.add_argument('--model_type', default='distill', type=str, metavar='type',
+                    help='type of the model')
 best_prec1 = 0
 
 
@@ -92,15 +94,15 @@ def main():
         pin_memory=False
     )
 
-    vgg_features = models.vgg16(pretrained=True).features.cuda()
-
-    fix_pred = FixPred().cuda()
+    # vgg_features = models.vgg16(pretrained=True).features.cuda()
+    vgg_fea_hi = Vgg16Hi().cuda()
+    fix_pred = FixPred(args).cuda()
 
     optimizer = torch.optim.SGD(fix_pred.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
 
-    model_list = [vgg_features, fix_pred]
+    model_list = [vgg_fea_hi, fix_pred]
     # criterion = #MSE
 
     mse_best = 99999
@@ -122,7 +124,7 @@ def main():
             'state_dict': fix_pred.state_dict(),
             'best_prec1': mse_best,
             'optimizer': optimizer.state_dict(),
-        }, is_best, filetype='baseline')
+        }, is_best, filetype='baseline_10')
 
 
 def train(train_loader, model_list, optimizer, epoch):
@@ -137,7 +139,7 @@ def train(train_loader, model_list, optimizer, epoch):
 
     end = time.time()
 
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss(weight=torch.tensor(np.asarray([1, 1000], dtype='float32')).cuda()).cuda()
 
     for i, (input, target) in enumerate(train_loader):
 
@@ -145,20 +147,23 @@ def train(train_loader, model_list, optimizer, epoch):
         target_var = torch.autograd.Variable(target)
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
-        fea = vgg_features(input_var)
-        f_mean, f_var = fix_pred(fea.detach())
+        with torch.no_grad():
+            fea = vgg_features(input_var)
 
-        loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
-                         + args.lambda_ * torch.log(f_var + 1e-8))
-        loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+        output = fix_pred(fea)
 
-        mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+        # loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
+        #                  + args.lambda_ * torch.log(f_var + 1e-8))
+        # loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+        #
+        # mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+        loss = criterion.forward(output, target_var)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        RMSE_losses.update(mse_loss.data[0], input.size(0))
+        # RMSE_losses.update(mse_loss.data[0], input.size(0))
         losses.update(loss.data[0], input.size(0))
 
         batch_time.update(time.time() - end)
@@ -166,10 +171,9 @@ def train(train_loader, model_list, optimizer, epoch):
 
         if i % args.print_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
-                  'Time: {batch_time.avg:.3f}\t'
-                  'RMSE Loss {rloss.val:.4f} ({rloss.avg:.4f})\t'
+                  'Time: {batch_time.avg:.3f}\t'                  
                   'normalized Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                epoch, i, len(train_loader), batch_time=batch_time, rloss=RMSE_losses, loss=losses
+                epoch, i, len(train_loader), batch_time=batch_time, loss=losses
             ))
 
 
@@ -183,28 +187,48 @@ def validate(val_loader, model_list):
     vgg_features.eval()
     fix_pred.eval()
 
+    criterion = nn.CrossEntropyLoss(weight=torch.tensor(np.asarray([1, 10], dtype='float32')).cuda()).cuda()
+
+    correct = 0
+    cnt_all = 0
+    pred_tobe_fix = 0
+    gt_tobe_fix = 0
     for i, (input, target) in enumerate(val_loader):
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
         target = target.cuda(async=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
-        fea = vgg_features(input_var)
-        f_mean, f_var = fix_pred(fea.detach())
+        with torch.no_grad():
+            fea = vgg_features(input_var)
+            output = F.softmax(fix_pred(fea), dim=1)
+            pred = output.max(1, keepdim=True)[1]
+            correct += pred.eq(target.view_as(pred)).sum().item()
 
-        mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
-        loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
-                         + args.lambda_ * torch.log(f_var))
-        loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+            TP = pred.eq(target.view_as(pred)).float() * pred.float()
+            TP = TP.sum().item()
+            cnt_all += pred.size(0) * pred.size(2) * pred.size(3)
+            pred_tobe_fix += pred.sum().item()
+            gt_tobe_fix += target.sum().item()
 
-        RMSE_losses.update(mse_loss.data[0], input.size(0))
+            loss = criterion.forward(output, target_var)
+
+        # mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+        # loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
+        #                  + args.lambda_ * torch.log(f_var))
+        # loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
+
+        # RMSE_losses.update(mse_loss.data[0], input.size(0))
         class_losses.update(loss.data[0], input.size(0))
 
     print('Test')
-    print(' * Prec@1 RMSE {RMSE_losses.avg:.3f}\t '
-          '* Prec@1 normalized loss {class_losses.avg:.3f}'.format(RMSE_losses=RMSE_losses, class_losses=class_losses))
+    print(' * Prec@1 acc {acc:.3f}\t  precision {prec: .3f} \t recall {recal: .3f}\t'
+          '* Prec@1 normalized loss {class_losses.avg:.3f}'.format(acc= correct / cnt_all,
+                                                                   prec=TP / pred_tobe_fix,
+                                                                   recal=TP / gt_tobe_fix,
+                                                                   class_losses=class_losses))
 
-    return RMSE_losses.avg
+    return correct / cnt_all
 
 
 if __name__ == '__main__':

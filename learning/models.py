@@ -5,6 +5,23 @@ import torch.nn as nn
 import torch.nn.functional as F
 # from sru import SRU
 from learning.convLSTM import ConvLSTM
+from torchvision.models import vgg16
+
+
+class Vgg16Hi(nn.Module):
+    def __init__(self):
+        super(Vgg16Hi, self).__init__()
+        features = list(vgg16(pretrained=True).features)[:23]
+        self.features = nn.ModuleList(features).eval()
+
+    def forward(self, x):
+        results = []
+        for ii, model in enumerate(self.features):
+            x = model(x)
+            if ii in {3, 8, 15, 22}:
+                # print('shape', x.size())
+                results.append(x)
+        return results
 
 
 class Mask(nn.Module):
@@ -95,40 +112,78 @@ class Reconst(nn.Module):
 
 
 class FixPred(nn.Module):
-    def __init__(self):
+    def __init__(self, args):
         super(FixPred, self).__init__()
 
         # l=[512, 256, 128, 64, 32]
         l = [32, 64, 128, 256, 512]
+        self.model_type = args.model_type
 
-        self.deconv5 = nn.ConvTranspose2d(l[4], l[3], kernel_size=5, stride=2, padding=2, output_padding=1)
-        self.deconv4 = nn.ConvTranspose2d(l[3], l[2], kernel_size=5, stride=2, padding=2, output_padding=1)
+        if args.model_type == 'raw':
+            self.deconv5 = nn.ConvTranspose2d(l[4], l[3], kernel_size=5, stride=2, padding=2, output_padding=1)
+            self.deconv4 = nn.ConvTranspose2d(l[3], l[2], kernel_size=5, stride=2, padding=2, output_padding=1)
 
-        self.deconv3 = nn.ConvTranspose2d(l[2], l[1], kernel_size=5, stride=2, padding=2, output_padding=1)
-        self.deconv2 = nn.ConvTranspose2d(l[1], l[0], kernel_size=5, stride=2, padding=2, output_padding=1)
-        self.deconv11 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
-        self.deconv12 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+            self.deconv3 = nn.ConvTranspose2d(l[2], l[1], kernel_size=5, stride=2, padding=2, output_padding=1)
+            self.deconv2 = nn.ConvTranspose2d(l[1], l[0], kernel_size=5, stride=2, padding=2, output_padding=1)
+            self.deconv11 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
+            self.deconv12 = nn.ConvTranspose2d(l[0], 1, kernel_size=5, stride=2, padding=2, output_padding=1)
 
-        self.pr2 = nn.PReLU()
-        self.pr3 = nn.PReLU()
-        self.pr4 = nn.PReLU()
-        self.pr5 = nn.PReLU()
+            self.pr2 = nn.PReLU()
+            self.pr3 = nn.PReLU()
+            self.pr4 = nn.PReLU()
+            self.pr5 = nn.PReLU()
+
+        elif args.model_type == 'distill':
+
+            self.upsample1 = nn.UpsamplingNearest2d(scale_factor=2)
+            self.upsample2 = nn.UpsamplingNearest2d(scale_factor=2)
+            self.upsample3 = nn.UpsamplingNearest2d(scale_factor=2)
+
+
+            self.conv1 = nn.Conv2d(l[4], l[3], kernel_size=5, padding=2)
+            self.conv12 = nn.Conv2d(l[4], l[3], kernel_size=5, padding=2)
+            self.conv2 = nn.Conv2d(l[3], l[2], kernel_size=5, padding=2)
+            self.conv22 = nn.Conv2d(l[3], l[2], kernel_size=5, padding=2)
+            self.conv3 = nn.Conv2d(l[2], l[1], kernel_size=5, padding=2)
+            self.conv32 = nn.Conv2d(l[1], l[1], kernel_size=5, padding=2)
+            self.conv41 = nn.Conv2d(l[1], 2, kernel_size=5, padding=2)
+            # self.conv42 = nn.Conv2d(l[1], 1, kernel_size=5, padding=2)
 
     def forward(self, x):
+        if self.model_type == 'raw':
+            x = self.pr2(self.deconv5(x))
+            x = self.pr3(self.deconv4(x))
 
-        x = self.pr2(self.deconv5(x))
-        x = self.pr3(self.deconv4(x))
+            x = self.pr4(self.deconv3(x))
+            x = self.pr5(self.deconv2(x))
+            mean = self.deconv11(x)
+            var = self.deconv12(x)
 
-        x = self.pr4(self.deconv3(x))
-        x = self.pr5(self.deconv2(x))
-        mean = self.deconv11(x)
-        var = self.deconv12(x)
+            return mean, torch.exp(var)
 
-        return mean, torch.exp(var)
+        elif self.model_type == 'distill':
+
+            x1, x2, x3, x4 = x
+            x = F.relu(self.conv1(x4))
+            x = self.upsample1(x)
+            x = torch.cat((x, x3), dim=1)
+            x = F.relu(self.conv12(x))
+            x = F.relu(self.conv2(x))
+            x = self.upsample2(x)
+            x = torch.cat((x, x2), dim=1)
+            x = F.relu(self.conv22(x))
+            x = F.relu(self.conv3(x))
+            x = self.upsample3(x)
+            # x = torch.cat((x, x1), dim=1)
+            x = F.relu(self.conv32(x))
+            mean = self.conv41(x)
+            # var = self.conv42(x)
+
+            return mean
 
 
 class BayesPred(nn.Module):
-    def __init__(self):
+    def __init__(self, args):
         super(BayesPred, self).__init__()
 
         l = [32, 64, 128, 256, 512]
