@@ -28,7 +28,7 @@ parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=32, type=int,
+parser.add_argument('-b', '--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
@@ -110,7 +110,6 @@ def main():
         args.start_epoch = dict_saved['epoch']
         mse_best = dict_saved['best_prec1']
 
-
     optimizer = torch.optim.SGD(list(mask.parameters()) + list(reconstruct_model.parameters()), args.lr,
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
@@ -119,26 +118,25 @@ def main():
     # criterion = #MSE
 
 
-
     for epoch in range(args.start_epoch, args.epochs):
-            adjust_learning_rate(args, optimizer, epoch)
+        adjust_learning_rate(args, optimizer, epoch)
 
-            # train for one epoch
-            train(train_loader, model_list, optimizer, epoch)
+        # train for one epoch
+        train(train_loader, model_list, optimizer, epoch)
 
-            # evaluate on validation set
-            mse = validate(val_loader, model_list)
+        # evaluate on validation set
+        mse = validate(val_loader, model_list)
 
-            # remember best mse error and save checkpoint
-            is_best = mse < mse_best
-            mse_best = min(mse, mse_best)
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': mask.state_dict(),
-                'reconstruct': reconstruct_model.state_dict(),
-                'best_prec1': mse_best,
-                'optimizer' : optimizer.state_dict(),
-            }, is_best)
+        # remember best mse error and save checkpoint
+        is_best = mse < mse_best
+        mse_best = min(mse, mse_best)
+        save_checkpoint({
+            'epoch': epoch + 1,
+            'state_dict': mask.state_dict(),
+            'reconstruct': reconstruct_model.state_dict(),
+            'best_prec1': mse_best,
+            'optimizer' : optimizer.state_dict(),
+        }, is_best)
 
 
 def train(train_loader, model_list, optimizer, epoch):
@@ -160,7 +158,7 @@ def train(train_loader, model_list, optimizer, epoch):
 
     for i, (input, target) in enumerate(train_loader):
 
-        target = target.cuda(async=True)
+        target = target.cuda()
         target_var = torch.autograd.Variable(target)
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
@@ -216,18 +214,13 @@ def validate(val_loader, model_list, visualize):
     for i, (input, target) in enumerate(val_loader):
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
-        target = target.cuda(async=True)
+        target = target.cuda()
         target_var = torch.autograd.Variable(target, volatile=True)
 
         fea = vgg_features(input_var)
         attention_mask = mask_model(fea.detach())
 
         masked_image = attention_mask * input_var  # apply the attention mask on the origin picture
-        if (visualize == True):
-            # make a directory for images in this epoch
-            # save each image as /epochnum/imagenum.png
-
-
 
         reconstruct_image = reconstruct_model(masked_image)
 

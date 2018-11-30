@@ -44,6 +44,8 @@ parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
+parser.add_argument('--resume_prior', default='/home/mcz/eye-movements/model_best_prior.pth.tar', type=str, metavar='PATH',
+                    help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
@@ -92,15 +94,20 @@ def main():
         pin_memory=False
     )
 
-    vgg_features = models.vgg16(pretrained=True).features.cuda()
+    mask = Mask().cuda()
+    dict_saved = torch.load(args.resume_prior)
+    mask.load_state_dict(dict_saved['state_dict'])
 
-    fix_pred = FixPred().cuda()
+    args.start_epoch = dict_saved['epoch']
+    vgg_features1 = models.vgg16(pretrained=True).features.cuda()
 
-    optimizer = torch.optim.SGD(fix_pred.parameters(), args.lr,
+    bayesian_pred = BayesPred().cuda()
+
+    optimizer = torch.optim.SGD(bayesian_pred.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
 
-    model_list = [vgg_features, fix_pred]
+    model_list = [vgg_features1, bayesian_pred, mask]
     # criterion = #MSE
 
     mse_best = 99999
@@ -119,17 +126,18 @@ def main():
         mse_best = min(mse, mse_best)
         save_checkpoint({
             'epoch': epoch + 1,
-            'state_dict': fix_pred.state_dict(),
+            'state_dict': bayesian_pred.state_dict(),
             'best_prec1': mse_best,
             'optimizer': optimizer.state_dict(),
-        }, is_best, filetype='baseline')
+        }, is_best, filetype='bayesian')
 
 
 def train(train_loader, model_list, optimizer, epoch):
-    vgg_features, fix_pred = model_list
+    vgg_features1, bayesian_pred, mask = model_list
 
-    fix_pred.train()
-    vgg_features.eval()
+    bayesian_pred.train()
+    mask.eval()
+    vgg_features1.eval()
 
     RMSE_losses = AverageMeter()
     losses = AverageMeter()
@@ -137,16 +145,18 @@ def train(train_loader, model_list, optimizer, epoch):
 
     end = time.time()
 
-    criterion = nn.CrossEntropyLoss().cuda()
-
     for i, (input, target) in enumerate(train_loader):
 
         target = target.cuda(async=True)
         target_var = torch.autograd.Variable(target)
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
-        fea = vgg_features(input_var)
-        f_mean, f_var = fix_pred(fea.detach())
+        with torch.no_grad():
+            fea = vgg_features1(input_var)
+
+            mask_prior = mask(fea)
+
+        f_mean, f_var = bayesian_pred(fea.detach(), mask_prior)
 
         loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
                          + args.lambda_ * torch.log(f_var + 1e-8))
@@ -178,10 +188,11 @@ def validate(val_loader, model_list):
     class_losses = AverageMeter()
     batch_time = AverageMeter()
 
-    vgg_features, fix_pred = model_list
+    vgg_features1, bayesian_pred, mask = model_list
 
-    vgg_features.eval()
-    fix_pred.eval()
+    vgg_features1.eval()
+    bayesian_pred.eval()
+    mask.eval()
 
     for i, (input, target) in enumerate(val_loader):
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
@@ -189,8 +200,9 @@ def validate(val_loader, model_list):
         target = target.cuda(async=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
-        fea = vgg_features(input_var)
-        f_mean, f_var = fix_pred(fea.detach())
+        fea = vgg_features1(input_var)
+        mask_prior = mask(fea)
+        f_mean, f_var = bayesian_pred(fea.detach(), mask_prior)
 
         mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
         loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
