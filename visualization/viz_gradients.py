@@ -18,10 +18,10 @@ def main(path_to_img,path_to_output):
 
     # convolve to get gradients
     for i,row in enumerate(im):
-        grad_x[i] = convolve1d(row,weights=[1,-1])
+        grad_x[i] = convolve1d(row,weights=[1,0, -1])
 
     for i,row in enumerate(im.T):
-        grad_y[i] = convolve1d(row,weights=[1,-1])
+        grad_y[i] = convolve1d(row,weights=[1,0, -1])
 
     grad_y = grad_y.T
 
