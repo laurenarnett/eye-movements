@@ -25,9 +25,10 @@ class Vgg16Hi(nn.Module):
 
 
 class Mask(nn.Module):
-    def __init__(self):
+    def __init__(self, top_k_n=5):
         super(Mask, self).__init__()
 
+        self.top_k_n = top_k_n
         self.conv1 = nn.Conv2d(512, 256, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(128, 1, kernel_size=1, padding=0)
@@ -42,7 +43,7 @@ class Mask(nn.Module):
         size_x = x.size()
 
         x_resize = x.resize(size_x[0], size_x[2]*size_x[3])
-        topk, indices = torch.topk(x_resize, 5)
+        topk, indices = torch.topk(x_resize, self.top_k_n)
 
         # print('indices shape', indices.size())   ## batch  topk_num
 
