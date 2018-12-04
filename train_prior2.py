@@ -30,11 +30,11 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
+parser.add_argument('--weight-decay', '--wd', default=1e-6, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
@@ -91,10 +91,10 @@ def main():
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    vgg = models.vgg16(pretrained=True)
+    dense_net = models.densenet121(pretrained=True)
     vgg_features = models.vgg16(pretrained=True).features
 
-    vgg = vgg.cuda()
+    dense_net = dense_net.cuda()
     vgg_features = vgg_features.cuda()
 
     mask = Mask(top_k_n=8).cuda()
@@ -111,7 +111,7 @@ def main():
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
 
-    model_list = [vgg, vgg_features, mask]
+    model_list = [dense_net, vgg_features, mask]
     # criterion = #MSE
 
 
@@ -186,7 +186,7 @@ def train(train_loader, model_list, optimizer, epoch):
             ))
 
 
-def validate(val_loader, model_list, visualize):
+def validate(val_loader, model_list):
     RMSE_losses = AverageMeter()
     class_losses = AverageMeter()
     batch_time = AverageMeter()
@@ -216,7 +216,7 @@ def validate(val_loader, model_list, visualize):
 
         class_losses.update(class_loss.data[0], input.size(0))
 
-    print(' * '
+    print(' * TEST:'
           '* Prec@1 class {c_loss.avg:.3f}'.format(c_loss=class_losses))
 
     return class_losses.avg

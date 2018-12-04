@@ -29,15 +29,24 @@ class Mask(nn.Module):
         super(Mask, self).__init__()
 
         self.top_k_n = top_k_n
-        self.conv1 = nn.Conv2d(512, 256, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(512, 256, kernel_size=5, padding=2)
+        self.conv11 = nn.Conv2d(256, 256, kernel_size=5, padding=2)
         self.conv2 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
+        self.conv21 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(128, 1, kernel_size=1, padding=0)
+
+        self.bn1 = nn.BatchNorm2d(256)
+        self.bn11 = nn.BatchNorm2d(256)
+        self.bn2 = nn.BatchNorm2d(128)
+        self.bn21 = nn.BatchNorm2d(128)
 
         self.upsample = nn.UpsamplingNearest2d(scale_factor=32)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn11(self.conv11(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn21(self.conv21(x)))
         x = F.relu(self.conv3(x))
 
         size_x = x.size()
