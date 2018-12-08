@@ -1,0 +1,28 @@
+\begin{thebibliography}{1}\itemsep=-1pt
+
+\bibitem{Wilming01}
+N.~Wilming, S.~Onat, J.~Ossand\'on, A.~Acik, T.~C.~Kietzmann, K. Kaspar,
+R.~R.~Gamiero, A.~Vormberg, P.~K\"onig.
+\newblock Data from: An extensive dataset of eye movements during viewing of
+complex images. \verb|https://doi.org/10.5061/dryad.9pf75.|
+\newblock {\em Dryad Digital Repository}, 2017.
+
+\bibitem{Wilming02}
+N.~Wilming, S.~Onat, J.~Ossand\'on, A.~Acik, T.~C.~Kietzmann, K. Kaspar,
+R.~R.~Gamiero, A.~Vormberg, P.~K\"onig.
+\newblock An extensive dataset of eye movements during viewing of
+complex images. \verb|https://doi.org/10.1038/sdata.2016.126.|
+\newblock {\em Nature Scientific Data}, 4(1):160126, 2017.
+
+
+\bibitem{Judd}
+T.~Judd, K.~Ehinger, F.~Durand, and A.~Torralba.
+\newblock Learning to predict where humans look.
+\newblock {\em Proc. IEEE Int. Conf. Comput. Vis.}, 2009, pp. 2106–2113.
+
+\bibitem{Itti}
+L.~Itti and C.~Koch. 
+\newblock A Saliency-Based Search Mechanism for Overt and Covert Shifts of Visual Attention. 
+\newblock{\em Vision Research}, 40(10-12):1489–1506, 2000.
+
+\end{thebibliography}
