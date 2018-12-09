@@ -1,21 +1,29 @@
 from PIL import Image
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 22
 
 '''
 Measure performance of model by its true positive rate
 Predicting Eye-Fixations
 '''
 
-def main(ground_truth_path, pred_path):
-    partitions = [0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
-    with np.load(preds_file) as preds:
-        for idx,img in enumerate(os.listdir(ground_truth_path)):
+def main(pred_path):
+    plt.figure(figsize=(9,12))
+    for f in pred_path:
+        partitions = [0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+        preds = np.load(f)
+        prob = preds[0]
+        gt = preds[1]
+        for i in range(prob.shape[0]):
 
             # get ground truth and prediction values
-            test = np.asarray(Image.open(ground_truth_path + img))
-            pred = preds[idx]
-            tpr = dict(dict())
+            test = gt[i]
+            pred = prob[i]
+
+            tpr = dict()
 
             for partition in partitions:
 
@@ -42,13 +50,15 @@ def main(ground_truth_path, pred_path):
             mean_tpr = sum(tpr[key] for key in part_keys)/len(part_keys)
             mean_tprs.append(mean_tpr)
 
-            # plot the true positive rate vs the percent salient of the image
-            fig,ax = plt.subplots()
-            ax.plot(partition, mean_tprs)
-            plt.xlim([0.0,1.0])
-            plt.ylim([0.0,1.05])
-            plt.xlabel("Percent Salient")
-            plt.ylabel("True Positive Rate")
+        # plot the true positive rate vs the percent salient of the image
+        plt.plot(partitions, mean_tprs)
+    plt.title("Performance for Saliency Thresholds")
+    plt.xlim([0.0,0.35])
+    plt.ylim([0.0,1.05])
+    plt.xlabel("Percent Salient")
+    plt.ylabel("True Positive Rate")
+    #plt.tight_layout()
+    plt.savefig("/Users/Lauren/eye-movements/tex/final_report/figures/tpr.pdf")
 
 if __name__ =="__main__":
-    main(sys.argv[1],sys.argv[2])
+    main(['/Users/Lauren/eye-movements/baseline_200_prob.npy','/Users/Lauren/eye-movements/baseline_50m_prob.npy'])
