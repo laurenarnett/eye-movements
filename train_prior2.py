@@ -30,7 +30,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=32, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.000001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -51,6 +51,8 @@ parser.add_argument('--dist-url', default='tcp://224.66.41.62:23456', type=str,
 parser.add_argument('--dist-backend', default='gloo', type=str,
                     help='distributed backend')
 parser.add_argument('--print_freq', type=int, default=10000, metavar='N',
+                        help='print')
+parser.add_argument('--top_k_n', type=int, default=8, metavar='N',
                         help='print')
 best_prec1 = 0
 
@@ -97,7 +99,7 @@ def main():
     dense_net = dense_net.cuda()
     vgg_features = vgg_features.cuda()
 
-    mask = Mask(top_k_n=8).cuda()
+    mask = Mask(top_k_n=args.top_k_n).cuda()
     mse_best = 99999
 
     if args.resume:
@@ -107,9 +109,12 @@ def main():
         args.start_epoch = dict_saved['epoch']
         mse_best = dict_saved['best_prec1']
 
-    optimizer = torch.optim.SGD(mask.parameters(), args.lr,
-                                    momentum=args.momentum,
-                                    weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(mask.parameters(), args.lr,
+    #                                 momentum=args.momentum,
+    #                                 weight_decay=args.weight_decay)
+
+    optimizer = torch.optim.Adam(params = mask.parameters(), lr = args.lr,
+                                weight_decay=args.weight_decay)
 
     model_list = [dense_net, vgg_features, mask]
     # criterion = #MSE
@@ -132,7 +137,7 @@ def main():
             'state_dict': mask.state_dict(),
             'best_prec1': mse_best,
             'optimizer' : optimizer.state_dict(),
-        }, is_best, filetype = 'prior2')
+        }, is_best, filetype = 'prior2n')
 
 
 def train(train_loader, model_list, optimizer, epoch):
@@ -163,6 +168,7 @@ def train(train_loader, model_list, optimizer, epoch):
 
         masked_image = attention_mask * input_var   # apply the attention mask on the origin picture
 
+        masked_image = masked_image / (args.top_k_n/49)
         class_pred = vgg.forward(masked_image)
         class_loss = criterion(class_pred, target_var)
 
@@ -184,6 +190,8 @@ def train(train_loader, model_list, optimizer, epoch):
                   'classification Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time, loss=losses
             ))
+            if i>5000:
+                break
 
 
 def validate(val_loader, model_list):
@@ -206,13 +214,15 @@ def validate(val_loader, model_list):
         target = target.cuda()
         target_var = torch.autograd.Variable(target, volatile=True)
 
-        fea = vgg_features(input_var)
-        attention_mask = mask_model(fea.detach())
+        with torch.no_grad():
+            fea = vgg_features(input_var)
+            attention_mask = mask_model(fea.detach())
 
-        masked_image = attention_mask * input_var  # apply the attention mask on the origin picture
+            masked_image = attention_mask * input_var  # apply the attention mask on the origin picture
 
-        class_pred = vgg.forward(masked_image)
-        class_loss = criterion(class_pred, target_var)
+            masked_image = masked_image / args.top_k_n * 49
+            class_pred = vgg.forward(masked_image)
+            class_loss = criterion(class_pred, target_var)
 
         class_losses.update(class_loss.data[0], input.size(0))
 

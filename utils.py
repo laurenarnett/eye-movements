@@ -5,16 +5,19 @@ import torch.nn.functional as F
 import math
 import numpy as np
 
+
 def adjust_learning_rate(args, optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = args.lr * (0.1 ** (epoch // 30))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+
 def save_checkpoint(state, is_best, filetype = 'prior', filename='checkpoint.pth.tar'):
     torch.save(state, filetype + filename)
     if is_best:
-        shutil.copyfile(filename, filetype + 'model_best.pth.tar')
+        shutil.copyfile(filetype + filename, filetype + 'model_best.pth.tar')
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

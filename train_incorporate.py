@@ -26,7 +26,7 @@ parser.add_argument('--data', type=str, default='/mnt/md0/eye_move_data', metava
                     help='path to dataset')
 parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=50, type=int, metavar='N',
+parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--balance_num', default=200, type=int, metavar='N',
                     help='balance the prediction')
@@ -60,6 +60,8 @@ parser.add_argument('--print_freq', type=int, default=10000, metavar='N',
                         help='print')
 parser.add_argument('--model_type', default='distill', type=str, metavar='type',
                     help='type of the model')
+parser.add_argument('--top_k_n', type=int, default=8, metavar='N',
+                        help='print')
 best_prec1 = 0
 
 
@@ -98,13 +100,17 @@ def main():
 
     # vgg_features = models.vgg16(pretrained=True).features.cuda()
     vgg_fea_hi = Vgg16Hi().cuda()
-    fix_pred = FixPred(args).cuda()
+    bayesian_pred = BayesPred_N(args).cuda()
 
-    optimizer = torch.optim.SGD(fix_pred.parameters(), args.lr,
+    mask = Mask(top_k_n=args.top_k_n).cuda()
+    checkpoint = torch.load("./prior2ncheckpoint.pth.tar")
+    mask.load_state_dict(checkpoint["state_dict"])
+
+    optimizer = torch.optim.SGD(bayesian_pred.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
 
-    model_list = [vgg_fea_hi, fix_pred]
+    model_list = [vgg_fea_hi, bayesian_pred, mask]
     # criterion = #MSE
 
     mse_best = 99999
@@ -113,27 +119,28 @@ def main():
         adjust_learning_rate(args, optimizer, epoch)
 
         # train for one epoch
-        train(train_dataloader, model_list, optimizer, epoch)
+        train(train_dataloader, model_list, optimizer, epoch, args)
 
         # evaluate on validation set
-        mse = validate(test_dataloader, model_list)
+        mse = validate(test_dataloader, model_list, args)
 
         # remember best mse error and save checkpoint
         is_best = mse < mse_best
         mse_best = min(mse, mse_best)
         save_checkpoint({
             'epoch': epoch + 1,
-            'state_dict': fix_pred.state_dict(),
+            'state_dict': bayesian_pred.state_dict(),
             'best_prec1': mse_best,
             'optimizer': optimizer.state_dict(),
-        }, is_best, filetype='baseline_{}'.format(args.balance_num))
+        }, is_best, filetype='bayes_{}_'.format(args.balance_num))
 
 
-def train(train_loader, model_list, optimizer, epoch):
-    vgg_features, fix_pred = model_list
+def train(train_loader, model_list, optimizer, epoch, args):
+    vgg_fea_hi, fix_pred, mask = model_list
 
     fix_pred.train()
-    vgg_features.eval()
+    vgg_fea_hi.eval()
+    mask.eval()
 
     RMSE_losses = AverageMeter()
     losses = AverageMeter()
@@ -150,16 +157,11 @@ def train(train_loader, model_list, optimizer, epoch):
         input_var = torch.autograd.Variable(input.cuda(), volatile=True)
 
         with torch.no_grad():
-            fea = vgg_features(input_var)
+            fea = vgg_fea_hi(input_var)
+            attention_mask = mask(fea[-1])
 
-        output = fix_pred(fea)
-        print(output.size(), target_var.size())
+        output = fix_pred(fea, attention_mask)
 
-        # loss = torch.sum((1 - args.lambda_) * (f_mean - target_var) ** 2 / (f_var + 1e-8)
-        #                  + args.lambda_ * torch.log(f_var + 1e-8))
-        # loss = loss / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
-        #
-        # mse_loss = torch.sum((f_mean - target_var) ** 2) / f_mean.size(0) / f_mean.size(2) / f_mean.size(3)
         loss = criterion.forward(output, target_var)
 
         optimizer.zero_grad()
@@ -175,22 +177,23 @@ def train(train_loader, model_list, optimizer, epoch):
         if i % args.print_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
                   'Time: {batch_time.avg:.3f}\t'                  
-                  'normalized Loss {loss.val:.8f} ({loss.avg:.8f})\t'.format(
+                  'normalized Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i, len(train_loader), batch_time=batch_time, loss=losses
             ))
 
 
-def validate(val_loader, model_list):
+def validate(val_loader, model_list, args):
     RMSE_losses = AverageMeter()
     class_losses = AverageMeter()
     batch_time = AverageMeter()
 
-    vgg_features, fix_pred = model_list
+    vgg_fea_hi, fix_pred, mask = model_list
 
-    vgg_features.eval()
     fix_pred.eval()
+    vgg_fea_hi.eval()
+    mask.eval()
 
-    criterion = nn.CrossEntropyLoss(weight=torch.tensor(np.asarray([1, 10], dtype='float32')).cuda()).cuda()
+    criterion = nn.CrossEntropyLoss(weight=torch.tensor(np.asarray([1, args.balance_num], dtype='float32')).cuda()).cuda()
 
     correct = 0
     cnt_all = 0
@@ -203,8 +206,11 @@ def validate(val_loader, model_list):
         target_var = torch.autograd.Variable(target, volatile=True)
 
         with torch.no_grad():
-            fea = vgg_features(input_var)
-            output = F.softmax(fix_pred(fea), dim=1)
+            fea = vgg_fea_hi(input_var)
+            attention_mask = mask(fea[-1])
+
+            output = F.softmax(fix_pred(fea, attention_mask), dim=1)
+
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -226,7 +232,7 @@ def validate(val_loader, model_list):
 
     print('Test')
     print(' * Prec@1 acc {acc:.8f}\t  precision {prec: .8f} \t recall {recal: .8f}\t'
-          '* Prec@1 normalized loss {class_losses.avg:.3f}'.format(acc= correct / cnt_all,
+          '* Prec@1 normalized loss {class_losses.avg:.8f}'.format(acc= correct / cnt_all,
                                                                    prec=TP / pred_tobe_fix,
                                                                    recal=TP / gt_tobe_fix,
                                                                    class_losses=class_losses))
