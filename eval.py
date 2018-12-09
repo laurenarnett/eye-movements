@@ -61,4 +61,4 @@ def main(pred_path):
     plt.savefig("/Users/Lauren/eye-movements/tex/final_report/figures/tpr.pdf")
 
 if __name__ =="__main__":
-    main(['/Users/Lauren/eye-movements/baseline_200_prob.npy','/Users/Lauren/eye-movements/baseline_50m_prob.npy'])
+    main(['/Users/Lauren/eye-movements/_prob_baye.npy','/Users/Lauren/eye-movements/baseline_200_prob.npy','/Users/Lauren/eye-movements/baseline_50m_prob.npy'])
