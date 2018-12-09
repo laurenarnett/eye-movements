@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{pdfpages}
 
 %%%%%%%%%
 % Example of figure inclusion
@@ -106,13 +107,10 @@ Columbia University in the City of New York\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-   The ABSTRACT is to be in fully-justified italicized text, at the top
-   of the left-hand column, below the author and affiliation
-   information. Use the word ``Abstract'' as the title, in 12-point
-   Times, boldface type, centered relative to the column, initially
-   capitalized. The abstract is to be in 10-point, single-spaced type.
-   Leave two blank lines after the Abstract, then begin the main text.
-   Look at previous CVPR abstracts to get a feel for style and length.
+   Applications of tracking eye fixation location span from neuroscience and
+   the study of human vision to advertising and human computer interaction. 
+   We look to improve upon existing models of saliency. 
+
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
@@ -130,7 +128,17 @@ should read this new version.
 \section{Dataset of Eye-Tracking Data}
 \section{Learning a Model}
 \subsection{Training}
+
 \subsection{Performance}
+
+\begin{figure*}
+\begin{center}
+\includegraphics[width=\columnwidth]{figures/tpr.pdf}
+
+\end{center}
+   \caption{Example of a short caption, which should be centered.}
+\label{fig:short}
+\end{figure*}
 
 \section{Conclusion}
 
