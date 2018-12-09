@@ -192,6 +192,54 @@ class FixPred(nn.Module):
             return mean
 
 
+class BayesPred_N(nn.Module):
+    def __init__(self, args):
+        super(BayesPred_N, self).__init__()
+
+        l = [32, 64, 128, 256, 512]
+        self.model_type = args.model_type
+
+        self.upsample1 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.upsample2 = nn.UpsamplingNearest2d(scale_factor=2)
+        self.upsample3 = nn.UpsamplingNearest2d(scale_factor=2)
+
+        self.conv1 = nn.Conv2d(l[4], l[3], kernel_size=5, padding=2)
+        self.conv12 = nn.Conv2d(l[4], l[3], kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(l[3], l[2], kernel_size=5, padding=2)
+        self.conv22 = nn.Conv2d(l[3], l[2], kernel_size=5, padding=2)
+        self.conv3 = nn.Conv2d(l[2], l[1], kernel_size=5, padding=2)
+        self.conv32 = nn.Conv2d(l[1], l[1], kernel_size=5, padding=2)
+        self.conv41 = nn.Conv2d(l[1], 2, kernel_size=5, padding=2)
+
+    def forward(self, x, attention_mask):
+        x1, x2, x3, x4 = x
+        x = F.relu(self.conv1(x4))
+        x = self.upsample1(x)
+        x = torch.cat((x, x3), dim=1)
+        x = F.relu(self.conv12(x))
+        x = F.relu(self.conv2(x))
+        x = self.upsample2(x)
+        x = torch.cat((x, x2), dim=1)
+        x = F.relu(self.conv22(x))
+        x = F.relu(self.conv3(x))
+        x = self.upsample3(x)
+        # x = torch.cat((x, x1), dim=1)
+        x = F.relu(self.conv32(x))
+        mean = self.conv41(x)
+
+        attention_mask = attention_mask[:, :, ::4, ::4]
+        mask_neg = 1 - attention_mask
+        mask = torch.cat((mask_neg, attention_mask), dim=1)
+        #
+        # print(mean.size(), mask.size())
+
+        m = mean + mask
+
+        return m
+
+
+
+
 class BayesPred(nn.Module):
     def __init__(self, args):
         super(BayesPred, self).__init__()
