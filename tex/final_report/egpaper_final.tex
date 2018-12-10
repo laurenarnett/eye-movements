@@ -272,7 +272,18 @@ We train our baseline model using SGD, with learning rate of 1e-5 and weight dec
 We use ImageNet data for our prior training, where the mask prediction network is based on a pretrained VGG16 network, and the network to predict semantic meaning from the masked out image is a DenseNet, which we believe have more accurate gradient information. We train this Mask prediction network using SGD with learning rate of 1e-5.
 
 
+\subsection{Evaluation Metrics}
+
+In accordance with Judd \etal~\cite{Judd}, we use the true positive rate
+$\frac{TP}{TP + FN}$, where $TP$ is number of true positives, and $FN$ is the
+number of false negatives. This is evaluated using the probability prediction
+output of how salient each pixel is. We threshold this saliency map at the top
+$k$ percent probability, where $k=1, 3, 5, 10, 15, 20, 25$ and 30 percent of
+the image saliency map. 
+
 \subsection{Performance}
+Figure \ref{fig:tpr} shows our model's performance. We draw the ROC curve for the true
+positive rate. 
 
 \begin{figure}
 \begin{center}
