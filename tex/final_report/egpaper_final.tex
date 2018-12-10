@@ -96,7 +96,7 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{A Predictive Model for Eye Fixations}
+\title{Predicting the Eye Fixations with Prior Knowledge: A Bayesian Learning Architecture}
 
 \author{Lauren Arnett and Chengzhi Mao\\
 Columbia University in the City of New York\\
@@ -165,7 +165,61 @@ of writing.
 
 \section{Dataset of Eye-Tracking Data}
 \section{Learning a Model}
+\subsection{Baseline Model Setting}
+We conduct a binary classification task for each output pixel in our baseline eye fixation model. We propose a U-Net architecture, using a fixed pretrained VGG model. We take the features of 3, 8, 15, 22 layers in the VGG and feed into our fixation prediction network. We first learn a upsampling of the high level,low resolution features of the VGG, and then concatenate it with the low level, high resolution features.
+
+ \begin{figure*}
+	\begin{center}
+		\includegraphics[width=\columnwidth]{figures/architecture_bl.png}
+		
+	\end{center}
+	\caption{U-Net Architecture for our baseline model}
+	\label{fig:short}
+\end{figure*}
+
+\subsection{Overcoming the Checkerboard Artifacts of Upsampling}
+Building the upsampling using deconvolution operation introduces checkerboard artifacts, as shown in Fig. This is partly due to the overlap of the deconvolution, according to []. We overcome this by first applying a nearest-neighbor interpolation and then normal convolution operation.
+
+\subsection{Learning Prior from the ImageNet}
+
+ Due to the high cost of collecting eye movement data, which requires volunteers to set in front of the computer wearing an eye tracker, the number of samples in the training set is limited. We make an attempt to address this challenges by utilizing some prior knowledge of eye fixation.
+ 
+ \begin{figure*}
+ 	\begin{center}
+ 		\includegraphics[width=\columnwidth]{figures/Prior.png}
+ 		
+ 	\end{center}
+ 	\caption{Architecture for learning the prior}
+ 	\label{fig:short}
+ \end{figure*}
+ 
+ We interpret eye fixation points as the places which encode the most semantic information for the image. And with this prior, we construct a model which predicts a binary mask with 0 and 1 to select the image, and then use a neural network to predict the semantic information of that after masking image. 
+ 
+ The elements with value 1 in the predicted binary mask mimic the eye fixation point of the human, where the selection of these points should maximize the semantic information in the resulting image after training.
+ 
+ We denote the semantic label of a given image $X$ as $y$, the predicted mask as $M$, and the loss function to minimize $L$
+ $$M_i = F_1(X_i, k)$$
+ $$L(X, Y) = \sum_{x_i \in X}{logP(y | F_2(M_i * x_i))}$$
+ 
+ where * denotes element wise multiplication, $k$ denote the number of value 1 we need in the binary mask.
+ 
+ After training The $M_i$ can be interpreted as a learned prior knowledge, which is fixed during the bayesian learning scheme.
+ 
+ \subsection{Incorporating Prior Improves Prediction}
+ 
+ The main contribution of our work is a bayesian inference scheme that builds upon a prior knowledge learned externally. We denote the eye fixation ground truth as $t$, 
+ 
+ $$L = logP(M, t|x) = log(P(M|x)) + log(t|M, x)$$
+ 
+ The prior M gives a good estimation of the eye fixation in advance, which enhance the optimization of this loss function.
+ 
+ 
+ 
 \subsection{Training}
+We train our baseline model using SGD, with learning rate of 1e-5 and weight decay of 1e-6. We train 50 epoch before we stop.
+
+We use ImageNet data for our prior training, where the mask prediction network is based on a pretrained VGG16 network, and the network to predict semantic meaning from the masked out image is a DenseNet, which we believe have more accurate gradient information. We train this Mask prediction network using SGD with learning rate of 1e-5.
+
 
 \subsection{Performance}
 
@@ -177,6 +231,25 @@ of writing.
    \caption{Example of a short caption, which should be centered.}
 \label{fig:short}
 \end{figure*}
+
+
+\begin{figure*}
+	\begin{center}
+		\includegraphics[width=\columnwidth]{figures/bird_mask_predict.png}
+		
+	\end{center}
+	\caption{Example of mask learned on Imagenet}
+	\label{fig:short}
+\end{figure*}
+
+\begin{figure*}
+	\begin{center}
+		\includegraphics[width=\columnwidth]{figures/road.png}		
+	\end{center}
+	\caption{Example of extrapolating the prior learned on ImageNet to the eye fixation dataset}
+	\label{fig:short}
+\end{figure*}
+
 
 \section{Conclusion}
 
