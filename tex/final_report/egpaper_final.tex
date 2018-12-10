@@ -106,24 +106,62 @@ Columbia University in the City of New York\\
 \maketitle
 
 %%%%%%%%% ABSTRACT
-\begin{abstract}
-   Applications of tracking eye fixation location span from neuroscience and
-   the study of human vision to advertising and human computer interaction. 
-   We look to improve upon existing models of saliency. 
+\begin{abstract} 
+    
+    Applications of tracking eye fixation location span from neuroscience and
+    the study of human vision to advertising and human computer interaction. By
+    creating a model to generate a prediction of where the eye may be most
+    attracted to, industries can circumvent the expense of running studies on
+    eye-tracking with actual human subjects. We look to improve upon existing
+    models of saliency by using Bayesian methods with deep learning techniques.
 
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
-\section{Introduction}
-
-Please follow the steps outlined below when submitting your manuscript to
-the IEEE Computer Society Press.  This style guide now has several
-important modifications (for example, you are no longer warned against the
-use of sticky tape to attach your artwork to the paper), so all authors
-should read this new version.
-
+\section{Introduction} It is estimated that 80\% of all external sensory input
+processed by the human brain is processed by the visual pathway~\cite{Jerath}.
+As such, optimizing image layout for processing by the human brain allows for
+better information retrieval and retention across the image. Studying how
+humans’ eyes move across images is thus relevant for fields from neuroscience
+to advertising and  art. Being able to predict where humans are most likely to
+look provides a guideline as to whether the image has an effective layout, what
+humans are attracted to in viewing art, or how an image should be cropped to
+feature the subject. Using an existing dataset of eye movements, we build
+a predictive model to generate the most likely fixation locations on a new
+image.
 %-------------------------------------------------------------------------
-\section{Related Work}
+\section{Related Work} 
+
+Traditionally, studies on eye movements have been carried out such that
+viewers look at images on a monitor while an eye tracker records the
+eye-fixations that stay within a threshold angle of movement. This procedure is
+very costly, and necessitated formulating a method to predict where users will
+look. Thus, models of saliency---the likelihood of a location to attract the
+visual attention of a human---developed that are modeled mathematically using
+biologically plausible linear filters. For example, linear combinations of
+filters for low-level features such as color, intensity, and orientation
+filters can be used to compute a total saliency map for an image,
+providing a bottom-up understanding of the image~\cite{Itti}.
+
+These models do not account for particular tasks that the viewer may have in
+looking at the image, and often do not align with the ground truth fixation
+locations. Judd \etal~\cite{Judd} propose using deep learning for this task
+rather than deriving mathematical models and show that training from a large
+database of eye-tracking data outperforms existing models. K\"ummerer
+\etal~\cite{Kummerer} also employ deep learning for predicting fixation
+locations, using the AlexNet architecture in \textit{DeepGaze I} and \textit{DeepGaze II}, built upon the VGG-19 network.
+
+Developing a dataset for use by saliency models is also a field of exploration.
+Judd \etal~\cite{Judd} creates a dataset of 1003 images with the fixation
+locations from 15 viewers each and makes it publicly available. Jiang
+\etal~\cite{Jiang} relies on an assumption of eye-mouse coordination---they
+simulate recording eye-tracking data with instead recording mouse-tracking data
+using Amazon Mechanical Turk. This provides a less expensive and
+training-intensive method of developing a simulated saliency map. Finally, the
+MIT300 dataset \cite{mitbench} looks to provide a performance benchmark for new predictive
+models for saliency, with performance statistics for over 80 models at the time
+of writing. 
+
 
 \section{Dataset of Eye-Tracking Data}
 \section{Learning a Model}
