@@ -44,6 +44,9 @@ R.~R.~Gamiero, A.~Vormberg, P.~K\"onig.
 complex images. \verb|https://doi.org/10.1038/sdata.2016.126.|
 \newblock {\em Nature Scientific Data}, 4(1):160126, 2017.
 
-
+\bibitem{labelme}
+B. Russell, A. Torralba, K. Murphy, W. T. Freeman.
+\newblock LabelMe: a database and web-based tool for image annotation.
+\newblock{\em The IEEE Int. Conf. Comput. Vis}, pp. 157-173. 
 
 \end{thebibliography}

@@ -163,19 +163,39 @@ models for saliency, with performance statistics for over 80 models at the time
 of writing. 
 
 
-\section{Dataset of Eye-Tracking Data}
+\section{Dataset}
+We make use of two datasets: ImageNet for training our prior and an
+eye-fixation dataset for our classifier. 
+\subsection{Source for Eye-Tracking Data}
+We use an open-source dataset developed at Osnabr\"uck University and the
+University Medical Center in Hamburg-Eppendorf \cite{Wilming01, Wilming02}. This dataset comprises images
+of many categories, including urban and rural settings, fractals, faces, and
+websites. For our purposes, we use the images of urban and rural settings,
+which have been taken from the LabelMe dataset \cite{labelme}. Each image in
+this category is shown to the viewer for eight seconds, and this category has
+the x- and y-coordinates of 70,026 fixation locations for seven observers over
+600 images. Figure ~\ref{fig:dataset} shows examples of fixation locations
+across the image. 
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=0.5\columnwidth]{figures/movements.jpg}
+	\end{center}
+	\caption{Eye-tracking locations on sample images from dataset.}
+	\label{fig:dataset}
+\end{figure}
+
 \section{Learning a Model}
 \subsection{Baseline Model Setting}
 We conduct a binary classification task for each output pixel in our baseline eye fixation model. We propose a U-Net architecture, using a fixed pretrained VGG model. We take the features of 3, 8, 15, 22 layers in the VGG and feed into our fixation prediction network. We first learn a upsampling of the high level,low resolution features of the VGG, and then concatenate it with the low level, high resolution features.
 
- \begin{figure*}
+ \begin{figure}
 	\begin{center}
 		\includegraphics[width=\columnwidth]{figures/architecture_bl.png}
-		
 	\end{center}
 	\caption{U-Net Architecture for our baseline model}
-	\label{fig:short}
-\end{figure*}
+	\label{fig:unet}
+\end{figure}
 
 \subsection{Overcoming the Checkerboard Artifacts of Upsampling}
 Building the upsampling using deconvolution operation introduces checkerboard artifacts, as shown in Fig. This is partly due to the overlap of the deconvolution, according to []. We overcome this by first applying a nearest-neighbor interpolation and then normal convolution operation.
@@ -184,14 +204,14 @@ Building the upsampling using deconvolution operation introduces checkerboard ar
 
  Due to the high cost of collecting eye movement data, which requires volunteers to set in front of the computer wearing an eye tracker, the number of samples in the training set is limited. We make an attempt to address this challenges by utilizing some prior knowledge of eye fixation.
  
- \begin{figure*}
+ \begin{figure}
  	\begin{center}
  		\includegraphics[width=\columnwidth]{figures/Prior.png}
  		
  	\end{center}
  	\caption{Architecture for learning the prior}
- 	\label{fig:short}
- \end{figure*}
+ 	\label{fig:prior}
+ \end{figure}
  
  We interpret eye fixation points as the places which encode the most semantic information for the image. And with this prior, we construct a model which predicts a binary mask with 0 and 1 to select the image, and then use a neural network to predict the semantic information of that after masking image. 
  
@@ -223,32 +243,32 @@ We use ImageNet data for our prior training, where the mask prediction network i
 
 \subsection{Performance}
 
-\begin{figure*}
+\begin{figure}
 \begin{center}
 \includegraphics[width=\columnwidth]{figures/tpr.pdf}
 
 \end{center}
    \caption{Example of a short caption, which should be centered.}
 \label{fig:short}
-\end{figure*}
+\end{figure}
 
 
-\begin{figure*}
+\begin{figure}
 	\begin{center}
 		\includegraphics[width=\columnwidth]{figures/bird_mask_predict.png}
 		
 	\end{center}
-	\caption{Example of mask learned on Imagenet}
+	\caption{Example of mask learned on ImageNet}
 	\label{fig:short}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}
+\begin{figure}
 	\begin{center}
 		\includegraphics[width=\columnwidth]{figures/road.png}		
 	\end{center}
 	\caption{Example of extrapolating the prior learned on ImageNet to the eye fixation dataset}
 	\label{fig:short}
-\end{figure*}
+\end{figure}
 
 
 \section{Conclusion}
