@@ -7,6 +7,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{pdfpages}
+\usepackage{gensymb}
 
 %%%%%%%%%
 % Example of figure inclusion
@@ -176,14 +177,29 @@ this category is shown to the viewer for eight seconds, and this category has
 the x- and y-coordinates of 70,026 fixation locations for seven observers over
 600 images. Figure ~\ref{fig:dataset} shows examples of fixation locations
 across the image. 
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.5\columnwidth]{figures/movements.jpg}
+    \end{center}
+    \caption{Eye-tracking locations on sample images from dataset.}
+    \label{fig:dataset}
+\end{figure}
+
+\subsection{Preprocessing} We preprocess the fixation data by adding weight to
+those pixels in the image that have fixations to produce ground truth labels.
+We apply a Gaussian blur to also add weight to neighboring pixels to account
+for the $0.5\degree$ angle of error due to the eye-tracking machine.
+Figure~\ref{fig:preprocess} shows the fixation locations and corresponding
+ground truth labels.
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=0.5\columnwidth]{figures/movements.jpg}
+		\includegraphics[width=\columnwidth]{figures/preprocess.png}
 	\end{center}
-	\caption{Eye-tracking locations on sample images from dataset.}
-	\label{fig:dataset}
+	\caption{Preprocessing of the fixation locations.}
+	\label{fig:preprocess}
 \end{figure}
+
 
 \section{Learning a Model}
 \subsection{Baseline Model Setting}
