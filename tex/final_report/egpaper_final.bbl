@@ -1,5 +1,35 @@
 \begin{thebibliography}{1}\itemsep=-1pt
 
+\bibitem{Jerath}
+R.~Jerath, M. W.~Crawford, V. A.~Barnes.
+\newblock Functional representation of vision within the mind: A visual
+consciousness model based in 3D default space.
+\newblock{\em  Journal of Medical Hypotheses and Ideas}, 9(1):45-56, 2015.
+
+\bibitem{Itti}
+L.~Itti and C.~Koch. 
+\newblock A Saliency-Based Search Mechanism for Overt and Covert Shifts of Visual Attention. 
+\newblock{\em Vision Research}, 40(10-12):1489–1506, 2000.
+
+\bibitem{Judd}
+T.~Judd, K.~Ehinger, F.~Durand, and A.~Torralba.
+\newblock Learning to predict where humans look.
+\newblock {\em Proc. IEEE Int. Conf. Comput. Vis.}, pp. 2106–2113, 2009.
+
+\bibitem{Kummerer}
+M.~K\"ummerer, T.~S.~A.~Wallis, L.~A.~Gatys, M.~Bethge.
+\newblock Understanding Low- and High-Level Contributions to Fixation Prediction.
+\newblock {\em The IEEE Int. Conf. Comput. Vis.}, pp. 4789-4798, 2017.   
+
+\bibitem{Jiang}
+M.~Jiang, S.~Huang, J.~Duan, Q.~Zhao
+\newblock SALICON: Saliency in Context.
+\newblock {\em CVPR}, pp. 1072-1080, 2015.
+
+\bibitem{mitbench}
+Z. Bylinskii, T. Judd, A. Borji, L. Itti, F. Durand, A. Oliva, and A. Torralba.
+ \newblock  MIT Saliency Benchmark.
+
 \bibitem{Wilming01}
 N.~Wilming, S.~Onat, J.~Ossand\'on, A.~Acik, T.~C.~Kietzmann, K. Kaspar,
 R.~R.~Gamiero, A.~Vormberg, P.~K\"onig.
@@ -15,14 +45,5 @@ complex images. \verb|https://doi.org/10.1038/sdata.2016.126.|
 \newblock {\em Nature Scientific Data}, 4(1):160126, 2017.
 
 
-\bibitem{Judd}
-T.~Judd, K.~Ehinger, F.~Durand, and A.~Torralba.
-\newblock Learning to predict where humans look.
-\newblock {\em Proc. IEEE Int. Conf. Comput. Vis.}, 2009, pp. 2106–2113.
-
-\bibitem{Itti}
-L.~Itti and C.~Koch. 
-\newblock A Saliency-Based Search Mechanism for Overt and Covert Shifts of Visual Attention. 
-\newblock{\em Vision Research}, 40(10-12):1489–1506, 2000.
 
 \end{thebibliography}
