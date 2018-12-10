@@ -165,7 +165,7 @@ of writing.
 
 
 \section{Dataset}
-We make use of two datasets: ImageNet for training our prior and an
+We make use of two datasets: ImageNet \cite{imagenet} for training our prior and an
 eye-fixation dataset for our classifier. 
 \subsection{Source for Eye-Tracking Data}
 We use an open-source dataset developed at Osnabr\"uck University and the
@@ -214,11 +214,23 @@ We conduct a binary classification task for each output pixel in our baseline ey
 \end{figure}
 
 \subsection{Overcoming the Checkerboard Artifacts of Upsampling}
-Building the upsampling using deconvolution operation introduces checkerboard artifacts, as shown in Fig. This is partly due to the overlap of the deconvolution, according to []. We overcome this by first applying a nearest-neighbor interpolation and then normal convolution operation.
+Building the upsampling using deconvolution operation introduces checkerboard
+artifacts, as shown in \ref{fig:checker}. This is partly due to the overlap of the
+deconvolution, according to \cite{checkerboard}. We overcome this by first applying a nearest-neighbor interpolation and then normal convolution operation.
 
+ \begin{figure}
+	\begin{center}
+		\includegraphics[width=0.4\columnwidth]{figures/checker.png}
+	\end{center}
+	\caption{Example of checkerboard artifacts.}
+	\label{fig:checker}
+\end{figure}
 \subsection{Learning Prior from the ImageNet}
 
- Due to the high cost of collecting eye movement data, which requires volunteers to set in front of the computer wearing an eye tracker, the number of samples in the training set is limited. We make an attempt to address this challenges by utilizing some prior knowledge of eye fixation.
+ Due to the high cost of collecting eye movement data, which requires
+ volunteers to sit in front of the computer wearing an eye tracker, the number
+ of samples in the training set is limited. We make an attempt to address these
+ challenges by utilizing some prior knowledge of eye fixation.
  
  \begin{figure}
  	\begin{center}
@@ -229,7 +241,10 @@ Building the upsampling using deconvolution operation introduces checkerboard ar
  	\label{fig:prior}
  \end{figure}
  
- We interpret eye fixation points as the places which encode the most semantic information for the image. And with this prior, we construct a model which predicts a binary mask with 0 and 1 to select the image, and then use a neural network to predict the semantic information of that after masking image. 
+ We interpret eye fixation points as the places which encode the most semantic
+ information for the image. With this prior, we construct a model which
+ predicts a binary mask with 0 and 1 to select the image, and then use a neural
+ network to predict the semantic information of that after masking image. 
  
  The elements with value 1 in the predicted binary mask mimic the eye fixation point of the human, where the selection of these points should maximize the semantic information in the resulting image after training.
  
@@ -265,7 +280,7 @@ We use ImageNet data for our prior training, where the mask prediction network i
 
 \end{center}
    \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
+\label{fig:tpr}
 \end{figure}
 
 
