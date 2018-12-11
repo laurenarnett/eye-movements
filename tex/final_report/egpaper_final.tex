@@ -8,6 +8,7 @@
 \usepackage{amssymb}
 \usepackage{pdfpages}
 \usepackage{gensymb}
+\usepackage{xcolor}
 
 %%%%%%%%%
 % Example of figure inclusion
@@ -97,11 +98,13 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{Predicting the Eye Fixations with Prior Knowledge: A Bayesian Learning Architecture}
+\title{Predicting the Eye Fixations with Prior Knowledge: \\A Bayesian Learning Architecture}
 
 \author{Lauren Arnett and Chengzhi Mao\\
 Columbia University in the City of New York\\
     {\tt\small \{lba2138,cm3797\}@columia.edu}
+    \\\href{https://github.com/laurenarnett/eye-movements}{\small\color{blue} Link to GitHub
+    Repository}
 }
 
 \maketitle
@@ -130,6 +133,14 @@ humans are attracted to in viewing art, or how an image should be cropped to
 feature the subject. Using an existing dataset of eye movements, we build
 a predictive model to generate the most likely fixation locations on a new
 image.
+
+Our main contribution in this paper is combining Bayesian methods with deep
+learning to perform the eye-fixation prediction task. We also explore a dataset
+of fixation locations that has not yet been used for the fixation prediction
+task. Additionally, we introduce a method to use an auxiliary dataset to learn
+image priors based on the area of the image that encodes the most semantic
+meaning. 
+
 %-------------------------------------------------------------------------
 \section{Related Work} 
 
@@ -150,13 +161,14 @@ locations. Judd \etal~\cite{Judd} propose using deep learning for this task
 rather than deriving mathematical models and show that training from a large
 database of eye-tracking data outperforms existing models. K\"ummerer
 \etal~\cite{Kummerer} also employ deep learning for predicting fixation
-locations, using the AlexNet architecture in \textit{DeepGaze I} and \textit{DeepGaze II}, built upon the VGG-19 network.
+locations, using the AlexNet architecture in \textit{DeepGaze I} and building
+upon the VGG-19 network in \textit{DeepGaze II}.
 
 Developing a dataset for use by saliency models is also a field of exploration.
-Judd \etal~\cite{Judd} creates a dataset of 1003 images with the fixation
-locations from 15 viewers each and makes it publicly available. Jiang
+Judd \etal~\cite{Judd} create a dataset of 1003 images with the fixation
+locations from 15 viewers each and make it publicly available. Jiang
 \etal~\cite{Jiang} relies on an assumption of eye-mouse coordination---they
-simulate recording eye-tracking data with instead recording mouse-tracking data
+simulate recording eye-tracking data by instead recording mouse-tracking data
 using Amazon Mechanical Turk. This provides a less expensive and
 training-intensive method of developing a simulated saliency map. Finally, the
 MIT300 dataset \cite{mitbench} looks to provide a performance benchmark for new predictive
@@ -165,8 +177,14 @@ of writing.
 
 
 \section{Dataset}
-We make use of two datasets: ImageNet \cite{imagenet} for training our prior and an
+We make use of two datasets: ImageNet \cite{imagenet} for the train set for our prior and an
 eye-fixation dataset for our classifier. 
+
+\subsection{Use of ImageNet for Training a Prior}
+We use the complete training set with the original image and the label
+information of ImageNet for training our prior. We select the best prior model
+based on the performance on the validation set. 
+
 \subsection{Source for Eye-Tracking Data}
 We use an open-source dataset developed at Osnabr\"uck University and the
 University Medical Center in Hamburg-Eppendorf \cite{Wilming01, Wilming02}. This dataset comprises images
@@ -176,7 +194,7 @@ which have been taken from the LabelMe dataset \cite{labelme}. Each image in
 this category is shown to the viewer for eight seconds, and this category has
 the x- and y-coordinates of 70,026 fixation locations for seven observers over
 600 images. Figure ~\ref{fig:dataset} shows examples of fixation locations
-across the image. 
+across the image. We use a 500/100 train/test split.
 \begin{figure}
     \begin{center}
         \includegraphics[width=0.5\columnwidth]{figures/movements.jpg}
@@ -203,20 +221,30 @@ ground truth labels.
 
 \section{Learning a Model}
 \subsection{Baseline Model Setting}
-We conduct a binary classification task for each output pixel in our baseline eye fixation model. We propose a U-Net architecture, using a fixed pretrained VGG model. We take the features of 3, 8, 15, 22 layers in the VGG and feed into our fixation prediction network. We first learn a upsampling of the high level,low resolution features of the VGG, and then concatenate it with the low level, high resolution features.
+
+We conduct a binary classification task for each output pixel in our baseline
+eye fixation model. We propose a U-Net architecture, using a fixed pretrained
+VGG model. We take the features of layer numbers 3, 8, 15, and 22 in the VGG
+model and feed them into our fixation prediction network. We first learn
+a upsampling of the high-level, low-resolution features of VGG, and then
+concatenate it with the low-level, high-resolution features to produce a final
+prediction.
 
  \begin{figure}
 	\begin{center}
 		\includegraphics[width=\columnwidth]{figures/architecture_bl.png}
 	\end{center}
-	\caption{U-Net Architecture for our baseline model}
+	\caption{U-Net Architecture for our baseline model.}
 	\label{fig:unet}
 \end{figure}
 
-\subsection{Overcoming the Checkerboard Artifacts of Upsampling}
-Building the upsampling using deconvolution operation introduces checkerboard
-artifacts, as shown in \ref{fig:checker}. This is partly due to the overlap of the
-deconvolution, according to \cite{checkerboard}. We overcome this by first applying a nearest-neighbor interpolation and then normal convolution operation.
+\subsection{Overcoming the Checkerboard Artifacts of Upsampling} Building the
+upsampling using the deconvolution operation introduces checkerboard artifacts,
+as shown in Figure \ref{fig:checker}. This is partly due to the overlap of the
+deconvolution, according to Odena \etal \cite{checkerboard}. We overcome this
+by first sequencing a nearest-neighbor interpolation along with a normal
+convolution operation.
+
 
  \begin{figure}
 	\begin{center}
@@ -227,10 +255,11 @@ deconvolution, according to \cite{checkerboard}. We overcome this by first apply
 \end{figure}
 \subsection{Learning Prior from the ImageNet}
 
- Due to the high cost of collecting eye movement data, which requires
- volunteers to sit in front of the computer wearing an eye tracker, the number
- of samples in the training set is limited. We make an attempt to address these
- challenges by utilizing some prior knowledge of eye fixation.
+ Due to the high cost of collecting eye movement data, which requires subjects
+ to sit in front of the computer with an expensive eye-tracking machine, the
+ number of samples that could be acquired in a training set may be limited. We
+ make an attempt to address these challenges by utilizing some prior knowledge
+ of eye fixation from an auxiliary dataset.
  
  \begin{figure}
  	\begin{center}
@@ -243,39 +272,81 @@ deconvolution, according to \cite{checkerboard}. We overcome this by first apply
  
  We interpret eye fixation points as the places which encode the most semantic
  information for the image. With this prior, we construct a model which
- predicts a binary mask with 0 and 1 to select the image, and then use a neural
- network to predict the semantic information of that after masking image. 
+ predicts a binary mask with 0 and 1 to select the appropriate locations of the
+ image. Applying this binary mask to the image, we then use a neural network to
+ predict the semantic information of the masked image. 
  
- The elements with value 1 in the predicted binary mask mimic the eye fixation point of the human, where the selection of these points should maximize the semantic information in the resulting image after training.
+ The elements with value 1 in the predicted binary mask mimic saliency map,
+ where the selection of these points should maximize the semantic information
+ in the resulting image after training.
  
- We denote the semantic label of a given image $X$ as $y$, the predicted mask as $M$, and the loss function to minimize $L$
- $$M_i = F_1(X_i, k)$$
- $$L(X, Y) = \sum_{x_i \in X}{logP(y | F_2(M_i * x_i))}$$
+ We denote the semantic label of a given image $x_i$ as $y_i$, the predicted mask
+ as $M$, and the loss function as $L$,
+
+ $$M_i = F_1(x_i, k)$$
+ $$L(X, Y) = \sum_{x_i \in X}{logP(y_i | F_2(M_i * x_i))}$$
  
- where * denotes element wise multiplication, $k$ denote the number of value 1 we need in the binary mask.
+ \noindent where * denotes element-wise multiplication and $k$ denotes the
+ number of elements we use in the binary mask. Here, $F_1$ denotes the
+ mask-prediction network, and $F_2$ denotes the pretrained classification
+ network. 
  
- After training The $M_i$ can be interpreted as a learned prior knowledge, which is fixed during the bayesian learning scheme.
+ After training, the $M_i$ can be interpreted as a learned prior knowledge,
+ which is fixed during the Bayesian learning procedure.
  
  \subsection{Incorporating Prior Improves Prediction}
  
- The main contribution of our work is a bayesian inference scheme that builds upon a prior knowledge learned externally. We denote the eye fixation ground truth as $t$, 
+ The main contribution of our work is a Bayesian inference procedure that
+ builds upon a prior knowledge learned with our auxiliary dataset. We denote
+ the eye-fixation ground truth as $t$, 
  
  $$L = logP(M, t|x) = log(P(M|x)) + log(t|M, x)$$
  
- The prior M gives a good estimation of the eye fixation in advance, which enhance the optimization of this loss function.
+ The prior $M$ gives a good estimation of the eye fixation in advance, which
+ enhances the optimization achieved by this loss function.
  
  
  
 \subsection{Training}
-We train our baseline model using SGD, with learning rate of 1e-5 and weight decay of 1e-6. We train 50 epoch before we stop.
+We train our baseline model using SGD, with a learning rate of $1$e$-5$ and
+weight decay of $1$e$-6$. We train 50 epoch before we stop.
 
-We use ImageNet data for our prior training, where the mask prediction network is based on a pretrained VGG16 network, and the network to predict semantic meaning from the masked out image is a DenseNet, which we believe have more accurate gradient information. We train this Mask prediction network using SGD with learning rate of 1e-5.
+We use ImageNet data for our prior training, where the mask prediction network
+is based on a pretrained VGG--16 network, and the network to predict semantic
+meaning from the masked image is a DenseNet, which we believe to have more
+accurate gradient information. We train this mask prediction network using SGD
+with a learning rate of 1e$-5$.
 
+\subsection{Evaluating the Prior} We visualize our binary mask prediction using
+both ImageNet and our fixation dataset. In Figure \ref{fig:birdmask}, we show
+the output of applying the mask to an ImageNet sample. This output is in line
+with expectations of eye-fixations on the bird. We then extrapolate our learned
+prior model for usage with our eye-fixation dataset, as seen in Figure
+\ref{fig:street}.  Through visualizing the application of the mask across
+images in our eye-fixation dataset, we see that the prior, after training on
+ImageNet, is able to generalize to the new dataset.
 
-\subsection{Evaluation Metrics}
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=\columnwidth]{figures/bird_mask_predict.png}
+		
+	\end{center}
+	\caption{Example of mask learned on ImageNet}
+	\label{fig:birdmask}
+\end{figure}
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=\columnwidth]{figures/road.png}		
+	\end{center}
+	\caption{Example of extrapolating the prior learned on ImageNet to the eye fixation dataset}
+	\label{fig:street}
+\end{figure}
+
+\subsection{Evaluation Metric}
 
 In accordance with Judd \etal~\cite{Judd}, we use the true positive rate
-$\frac{TP}{TP + FN}$, where $TP$ is number of true positives, and $FN$ is the
+$\frac{TP}{TP + FN}$ as the evaluation metric, where $TP$ is number of true positives, and $FN$ is the
 number of false negatives. This is evaluated using the probability prediction
 output of how salient each pixel is. We threshold this saliency map at the top
 $k$ percent probability, where $k=1, 3, 5, 10, 15, 20, 25$ and 30 percent of
@@ -283,7 +354,11 @@ the image saliency map.
 
 \subsection{Performance}
 Figure \ref{fig:tpr} shows our model's performance. We draw the ROC curve for the true
-positive rate. 
+positive rate. We can see that the Bayesian model outperforms the baseline
+model by a large margin. Specifically, at the 10\% threshold for the saliency map, the
+performance of the baseline model achieves 94.1\% performance of the Bayesian
+model, and at the 30\% threshold, the baseline model achieves 97\% performance
+of the Bayesian model.
 
 \begin{figure}
 \begin{center}
@@ -294,26 +369,11 @@ positive rate.
 \label{fig:tpr}
 \end{figure}
 
-
-\begin{figure}
-	\begin{center}
-		\includegraphics[width=\columnwidth]{figures/bird_mask_predict.png}
-		
-	\end{center}
-	\caption{Example of mask learned on ImageNet}
-	\label{fig:short}
-\end{figure}
-
-\begin{figure}
-	\begin{center}
-		\includegraphics[width=\columnwidth]{figures/road.png}		
-	\end{center}
-	\caption{Example of extrapolating the prior learned on ImageNet to the eye fixation dataset}
-	\label{fig:short}
-\end{figure}
-
-
-\section{Conclusion}
+\section{Conclusion} Our study looks at using new methods and a new dataset for
+the task of predicting eye-fixation locations. We use a subset of a large
+dataset of fixation locations to account for the difficulty of obtaining such
+data.  By combining a neural network classification model with a learned image
+prior, we achieve a higher performance than that of our classifier alone. 
 
 %------------------------------------------------------------------------
 {\small

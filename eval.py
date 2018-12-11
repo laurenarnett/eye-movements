@@ -53,6 +53,7 @@ def main(pred_path):
         # plot the true positive rate vs the percent salient of the image
         labels = ["Bayes Model", "Baseline"]
         plt.plot(partitions, mean_tprs, label=labels[j])
+        print(mean_tprs)
     plt.title("Performance for Saliency Thresholds")
     plt.xlim([0.0,0.35])
     plt.ylim([0.0,1.05])
