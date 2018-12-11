@@ -29,3 +29,5 @@ python visualize_prior2.py
 
 python train_incorporate.py
 
+## Evaluation
+
