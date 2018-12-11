@@ -2,6 +2,15 @@
 
 ## Preprocessing 
 
+### visualize the fixation locations
+
+python visualization/visualize_fixations.py path/to/data_file path/to/img_dir path/to/output_dir
+
+### preprocess the ground truth labels
+
+python preprocessing/preprocess.py path/to/data_file path/to/img_dir path/to/output_dir
+
+
 ## Learning and visualization
 
 ### train the baseline model
@@ -29,5 +38,7 @@ python visualize_prior2.py
 
 python train_incorporate.py
 
+
 ## Evaluation
 
+python eval.py path/to/output_from_bayes_model.npy path/to/output_from_baseline_model.npy path/to/figure_output
