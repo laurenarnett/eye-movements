@@ -12,7 +12,7 @@ Predicting Eye-Fixations
 
 def main(pred_path):
     plt.figure(figsize=(9,12))
-    for f in pred_path:
+    for j,f in enumerate(pred_path):
         partitions = [0.01, 0.03, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
         preds = np.load(f)
         prob = preds[0]
@@ -51,14 +51,17 @@ def main(pred_path):
             mean_tprs.append(mean_tpr)
 
         # plot the true positive rate vs the percent salient of the image
-        plt.plot(partitions, mean_tprs)
+        labels = ["Bayes Model", "Baseline"]
+        plt.plot(partitions, mean_tprs, label=labels[j])
+        print(mean_tprs)
     plt.title("Performance for Saliency Thresholds")
     plt.xlim([0.0,0.35])
     plt.ylim([0.0,1.05])
     plt.xlabel("Percent Salient")
     plt.ylabel("True Positive Rate")
+    plt.legend()
     #plt.tight_layout()
     plt.savefig("/Users/Lauren/eye-movements/tex/final_report/figures/tpr.pdf")
 
 if __name__ =="__main__":
-    main(['/Users/Lauren/eye-movements/_prob_baye.npy','/Users/Lauren/eye-movements/baseline_200_prob.npy','/Users/Lauren/eye-movements/baseline_50m_prob.npy'])
+    main(['/Users/Lauren/eye-movements/_prob_baye.npy','/Users/Lauren/eye-movements/baseline_200_prob.npy'])

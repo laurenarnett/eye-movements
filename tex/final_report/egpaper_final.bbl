@@ -30,6 +30,11 @@ M.~Jiang, S.~Huang, J.~Duan, Q.~Zhao
 Z. Bylinskii, T. Judd, A. Borji, L. Itti, F. Durand, A. Oliva, and A. Torralba.
  \newblock  MIT Saliency Benchmark.
 
+\bibitem{imagenet}
+J. Deng, W. Dong, R. Socher, L. J. Li, K. Li, and L. Fei-Fei.
+\newblock ImageNet: A Large-Scale Hierarchical Image Database.
+\newblock {\em CVPR}, 2009.
+
 \bibitem{Wilming01}
 N.~Wilming, S.~Onat, J.~Ossand\'on, A.~Acik, T.~C.~Kietzmann, K. Kaspar,
 R.~R.~Gamiero, A.~Vormberg, P.~K\"onig.
@@ -48,5 +53,11 @@ complex images. \verb|https://doi.org/10.1038/sdata.2016.126.|
 B. Russell, A. Torralba, K. Murphy, W. T. Freeman.
 \newblock LabelMe: a database and web-based tool for image annotation.
 \newblock{\em The IEEE Int. Conf. Comput. Vis}, pp. 157-173. 
+
+\bibitem{checkerboard}
+A. Odena, V. Dumoulin, and C. Olah.
+\newblock Deconvolution and Checkerboard Artifacts
+\newblock {\em Distill}, 2016.
+
 
 \end{thebibliography}
