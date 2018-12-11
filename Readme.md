@@ -1,15 +1,14 @@
 # Predicting eye fixation
 
-##Preprocessing 
+## Preprocessing 
 
+## Learning and visualization
 
-
-##Learning and visualization
 ### train the baseline model
 
 python train_basel.py
 
-###visualizing the prediction of baseline model
+### visualizing the prediction of baseline model
 
 First define the path for the baseline model to load.
 
