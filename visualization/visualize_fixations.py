@@ -1,5 +1,7 @@
 import fixmat as ft
 import sys
+import os
+import cv2
 
 
 def main(path_to_data_file, path_to_imgs, path_to_output):
