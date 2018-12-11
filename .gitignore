@@ -1,2 +1,12 @@
 *.aux
 *.log
+reconstruct/
+data/
+val/
+viz
+*.npy
+*.blg
+preprocessing/.ipynb_checkpoints/
+preprocessing/__pycache__/
+pres/
+
