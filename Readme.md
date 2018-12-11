@@ -1,4 +1,9 @@
-# Predicting eye fixation
+# Predicting eye fixation locations
+
+Data from:
+
+N. Wilming, S. Onat, J. Ossandón, A. Acik, T. C. Kietzmann, K. Kaspar, R. R. Gamiero, A. Vormberg, P. König. Data from: An extensive dataset of eye movements during viewing of complex images. https://doi.org/10.5061/dryad.9pf75. Dryad Digital Repository, 2017.
+
 
 ## Preprocessing 
 
